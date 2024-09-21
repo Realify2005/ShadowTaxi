@@ -46,9 +46,9 @@ public class Gameplay {
 
         // Initialize constants for rendering trip info
         this.FONT_PATH = GAME_PROPS.getProperty("font");
-        this.FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("gameplay.info.fontSize"));
-        this.TRIP_INFO_X = Double.parseDouble(GAME_PROPS.getProperty("gameplay.tripInfo.x"));
-        this.TRIP_INFO_Y = Double.parseDouble(GAME_PROPS.getProperty("gameplay.tripInfo.y"));
+        this.FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("gamePlay.info.fontSize"));
+        this.TRIP_INFO_X = Double.parseDouble(GAME_PROPS.getProperty("gamePlay.tripInfo.x"));
+        this.TRIP_INFO_Y = Double.parseDouble(GAME_PROPS.getProperty("gamePlay.tripInfo.y"));
 
         // Initialize constants for messages
         this.ONGOING_TRIP_TEXT = MESSAGE_PROPS.getProperty("gamePlay.onGoingTrip.title");

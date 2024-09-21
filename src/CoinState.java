@@ -32,7 +32,7 @@ public class CoinState {
         GAMEPLAY_COIN_Y = Integer.parseInt(properties.getProperty("gameplay.coin.y"));
 
         FONT_PATH = properties.getProperty("font");
-        FONT_SIZE = Integer.parseInt(properties.getProperty("gameplay.info.fontSize"));
+        FONT_SIZE = Integer.parseInt(properties.getProperty("gamePlay.info.fontSize"));
 
         INCREASE_PER_FRAME = 1;
         INITIAL_COIN_FRAMES = 0;

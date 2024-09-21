@@ -14,7 +14,8 @@ public class OngoingGameScreen {
     private final Properties MESSAGE_PROPS;
 
     // Constant related to the ongoing game background image.
-    private final Image GAME_ONGOING_IMAGE;
+    private final Image GAME_ONGOING_IMAGE_SUNNY;
+    private final Image GAME_ONGOING_IMAGE_RAINY;
 
     // Constant that defines the vertical scroll speed of the ongoing game background.
     private final int SCROLL_SPEED;
@@ -32,10 +33,15 @@ public class OngoingGameScreen {
     private double background1Y = Window.getHeight() / 2.0; // Y-coordinate = 384
     private double background2Y = -Window.getHeight() / 2.0; // Y-coordinate = -384
 
+    private ArrayList<Weather> weatherInfo;
+    private int currentFrame;
+    private Weather currentWeather;
+
     public OngoingGameScreen(Properties gameProps, Properties messageProps) {
         this.GAME_PROPS = gameProps;
         this.MESSAGE_PROPS = messageProps;
-        this.GAME_ONGOING_IMAGE = new Image(gameProps.getProperty("backgroundImage"));
+        this.GAME_ONGOING_IMAGE_SUNNY = new Image(gameProps.getProperty("backgroundImage.sunny"));
+        this.GAME_ONGOING_IMAGE_RAINY = new Image(gameProps.getProperty("backgroundImage.raining"));
 
         // Scroll speed for the ongoing game background can be referred to taxi's "scroll speed".
         SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
@@ -44,17 +50,27 @@ public class OngoingGameScreen {
         gameStats = new GameStats(gameProps, messageProps);
         gameplay = new Gameplay(tripEndFlag, coinState, gameStats, gameProps, messageProps);
         loadGameObjects(gameProps.getProperty("gamePlay.objectsFile"));
+        loadWeatherInfo(gameProps.getProperty("gamePlay.weatherFile"));
+
+        currentFrame = 0;
     }
 
     /**
      * Renders the main (gameplay) screen.
      */
     public void render() {
+        currentWeather = getCurrentWeather();
+
+        assert currentWeather != null; // This should always pass as long as the weather file is set up properly.
+        Image currentBackground = currentWeather.getType().equals("SUNNY")
+                ? GAME_ONGOING_IMAGE_SUNNY
+                : GAME_ONGOING_IMAGE_RAINY;
+
         // Draw first background image, coordinate (512, 384)
-        GAME_ONGOING_IMAGE.draw(Window.getWidth() / 2.0, background1Y);
+        currentBackground.draw(Window.getWidth() / 2.0, background1Y);
 
         // Draw second background image, coordinate (512, -384)
-        GAME_ONGOING_IMAGE.draw(Window.getWidth() / 2.0, background2Y);
+        currentBackground.draw(Window.getWidth() / 2.0, background2Y);
     }
 
     /**
@@ -71,6 +87,7 @@ public class OngoingGameScreen {
      */
     public void update(Input input) {
         final int BACKGROUND_LEFT_BOTTOM_WINDOW = 1152;
+        currentFrame++;
 
         if (input.isDown(Keys.UP)) {
             background1Y += SCROLL_SPEED;
@@ -141,6 +158,26 @@ public class OngoingGameScreen {
         gameplay.initialisePassengers(passengers);
     }
 
+    private void loadWeatherInfo(String filePath) {
+        weatherInfo = new ArrayList<>();
+        String[][] rows = IOUtils.readCommaSeparatedFile(filePath);
+        for (String[] row : rows) {
+            String type = row[0];
+            int startFrame = Integer.parseInt(row[1]);
+            int endFrame = Integer.parseInt(row[2]);
+            weatherInfo.add(new Weather(type, startFrame, endFrame));
+        }
+    }
+
+    private Weather getCurrentWeather() {
+        for (Weather weather : weatherInfo) {
+            if (currentFrame >= weather.getStartFrame() && currentFrame <= weather.getEndFrame()) {
+                return weather;
+            }
+        }
+        return null; // It should never reach here if the weather file is set up correctly.
+    }
+
     /**
      * Resets the game to its initial state.
      */
@@ -154,6 +191,7 @@ public class OngoingGameScreen {
         gameplay = new Gameplay(tripEndFlag, coinState, gameStats, GAME_PROPS, MESSAGE_PROPS);
         resetBackground();
         loadGameObjects(GAME_PROPS.getProperty("gamePlay.objectsFile"));
+        currentFrame = 0;
     }
 
     /**

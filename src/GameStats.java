@@ -42,14 +42,14 @@ public class GameStats {
         MAX_FRAMES = Integer.parseInt(gameProperties.getProperty("gamePlay.maxFrames"));
 
         FONT_PATH = gameProperties.getProperty("font");
-        FONT_SIZE = Integer.parseInt(gameProperties.getProperty("gameplay.info.fontSize"));
+        FONT_SIZE = Integer.parseInt(gameProperties.getProperty("gamePlay.info.fontSize"));
 
-        EARNINGS_X = Integer.parseInt(gameProperties.getProperty("gameplay.earnings.x"));
-        EARNINGS_Y = Integer.parseInt(gameProperties.getProperty("gameplay.earnings.y"));
-        TARGET_X = Integer.parseInt(gameProperties.getProperty("gameplay.target.x"));
-        TARGET_Y = Integer.parseInt(gameProperties.getProperty("gameplay.target.y"));
-        MAX_FRAMES_X = Integer.parseInt(gameProperties.getProperty("gameplay.maxFrames.x"));
-        MAX_FRAMES_Y = Integer.parseInt(gameProperties.getProperty("gameplay.maxFrames.y"));
+        EARNINGS_X = Integer.parseInt(gameProperties.getProperty("gamePlay.earnings.x"));
+        EARNINGS_Y = Integer.parseInt(gameProperties.getProperty("gamePlay.earnings.y"));
+        TARGET_X = Integer.parseInt(gameProperties.getProperty("gamePlay.target.x"));
+        TARGET_Y = Integer.parseInt(gameProperties.getProperty("gamePlay.target.y"));
+        MAX_FRAMES_X = Integer.parseInt(gameProperties.getProperty("gamePlay.maxFrames.x"));
+        MAX_FRAMES_Y = Integer.parseInt(gameProperties.getProperty("gamePlay.maxFrames.y"));
 
         EARNINGS_TEXT = messageProperties.getProperty("gamePlay.earnings");
         TARGET_TEXT = messageProperties.getProperty("gamePlay.target");
