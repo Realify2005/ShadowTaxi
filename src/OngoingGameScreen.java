@@ -7,15 +7,7 @@ import java.util.Properties;
  * Class to render the ongoing game screen.
  * Also handles the ongoing game's background scrolling.
  */
-public class OngoingGameScreen {
-
-    // Constants related to properties that other variables refer to.
-    private final Properties GAME_PROPS;
-    private final Properties MESSAGE_PROPS;
-
-    // Constant related to the ongoing game background image.
-    private final Image GAME_ONGOING_IMAGE_SUNNY;
-    private final Image GAME_ONGOING_IMAGE_RAINY;
+public class OngoingGameScreen extends Screen {
 
     // Constant that defines the vertical scroll speed of the ongoing game background.
     private final int SCROLL_SPEED;
@@ -35,13 +27,9 @@ public class OngoingGameScreen {
 
     private ArrayList<Weather> weatherInfo;
     private int currentFrame;
-    private Weather currentWeather;
 
     public OngoingGameScreen(Properties gameProps, Properties messageProps) {
-        this.GAME_PROPS = gameProps;
-        this.MESSAGE_PROPS = messageProps;
-        this.GAME_ONGOING_IMAGE_SUNNY = new Image(gameProps.getProperty("backgroundImage.sunny"));
-        this.GAME_ONGOING_IMAGE_RAINY = new Image(gameProps.getProperty("backgroundImage.raining"));
+        super(gameProps, messageProps, new Image(gameProps.getProperty("backgroundImage.sunny")));
 
         // Scroll speed for the ongoing game background can be referred to taxi's "scroll speed".
         SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
@@ -58,19 +46,20 @@ public class OngoingGameScreen {
     /**
      * Renders the main (gameplay) screen.
      */
-    public void render() {
-        currentWeather = getCurrentWeather();
+    @Override
+    public void draw() {
+        Weather currentWeather = getCurrentWeather();
 
         assert currentWeather != null; // This should always pass as long as the weather file is set up properly.
-        Image currentBackground = currentWeather.getType().equals("SUNNY")
-                ? GAME_ONGOING_IMAGE_SUNNY
-                : GAME_ONGOING_IMAGE_RAINY;
+        BACKGROUND_IMAGE = currentWeather.getType().equals("SUNNY")
+                ? new Image(this.GAME_PROPS.getProperty("backgroundImage.sunny"))
+                : new Image(this.GAME_PROPS.getProperty("backgroundImage.raining"));
 
         // Draw first background image, coordinate (512, 384)
-        currentBackground.draw(Window.getWidth() / 2.0, background1Y);
+        BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, background1Y);
 
         // Draw second background image, coordinate (512, -384)
-        currentBackground.draw(Window.getWidth() / 2.0, background2Y);
+        BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, background2Y);
     }
 
     /**

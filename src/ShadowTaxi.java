@@ -47,7 +47,7 @@ public class ShadowTaxi extends AbstractGame {
         }
         switch (currentGameState) {
             case HOME_SCREEN:
-                HOME_SCREEN.render();
+                HOME_SCREEN.draw();
                 // If "ENTER" key is pressed, then switch to player_info screen.
                 if (input.wasPressed(Keys.ENTER)) {
                     currentGameState = GameState.PLAYER_INFO;
@@ -55,14 +55,14 @@ public class ShadowTaxi extends AbstractGame {
                 break;
             case PLAYER_INFO:
                 PLAYER_INFO_SCREEN.enterPlayerName(input);
-                PLAYER_INFO_SCREEN.render();
+                PLAYER_INFO_SCREEN.draw();
                 // If "ENTER" key is pressed, then start the game.
                 if (input.wasPressed(Keys.ENTER)) {
                     currentGameState = GameState.GAME_ONGOING;
                 }
                 break;
             case GAME_ONGOING:
-                ONGOING_GAME_SCREEN.render();
+                ONGOING_GAME_SCREEN.draw();
                 ONGOING_GAME_SCREEN.update(input);
                 // Check if game over conditions were met.
                 if (ONGOING_GAME_SCREEN.hasGameEnded()) {
@@ -72,7 +72,7 @@ public class ShadowTaxi extends AbstractGame {
                 }
                 break;
             case GAME_END:
-                gameEndScreen.render();
+                gameEndScreen.draw();
                 break;
         }
         if (currentGameState == GameState.GAME_END && input.wasPressed(Keys.SPACE)) {

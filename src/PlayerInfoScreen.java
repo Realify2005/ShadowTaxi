@@ -5,15 +5,9 @@ import java.util.Properties;
 /**
  * Class to render the player info screen.
  */
-public class PlayerInfoScreen {
-
-    // Constants related to properties that other variables refer to.
-    private final Properties GAME_PROPS;
-    private final Properties MESSAGE_PROPS;
+public class PlayerInfoScreen extends Screen {
 
     // Constants related to rendering.
-    private final Image PLAYER_INFO_BACKGROUND_IMAGE;
-    private final String FONT_PATH;
     private final int FONT_SIZE;
 
     // Constants related to the texts from message_en.properties.
@@ -32,12 +26,9 @@ public class PlayerInfoScreen {
     private String playerName = "";
 
     public PlayerInfoScreen(Properties gameProps, Properties messageProps) {
-        this.GAME_PROPS = gameProps;
-        this.MESSAGE_PROPS = messageProps;
+        super(gameProps, messageProps, new Image(gameProps.getProperty("backgroundImage.playerInfo")));
 
         // Initialize constants
-        PLAYER_INFO_BACKGROUND_IMAGE = new Image(GAME_PROPS.getProperty("backgroundImage.playerInfo"));
-        FONT_PATH = GAME_PROPS.getProperty("font");
         FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("playerInfo.fontSize"));
 
         PLAYER_NAME_TEXT = MESSAGE_PROPS.getProperty("playerInfo.playerName");
@@ -51,11 +42,12 @@ public class PlayerInfoScreen {
     }
 
     /**
-     * Renders the player info screen.
+     * Draws the player info screen.
      */
-    public void render() {
+    @Override
+    public void draw() {
         // Draw player info background image
-        PLAYER_INFO_BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, Window.getHeight() / 2.0);
+        super.draw();
 
         // Draw player info message
         Font font = new Font(FONT_PATH, FONT_SIZE);

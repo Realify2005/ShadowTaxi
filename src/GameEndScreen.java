@@ -9,14 +9,9 @@ import java.util.Collections;
  * Renders the required screens and texts.
  */
 
-public class GameEndScreen {
-    // Constants related to properties that other variables refer to.
-    private final Properties GAME_PROPS;
-    private final Properties MESSAGE_PROPS;
+public class GameEndScreen extends Screen {
 
     // Constants related to rendering.
-    private final Image BACKGROUND_IMAGE;
-    private final String FONT_PATH;
     private final int SCORES_FONT_SIZE;
     private final int STATUS_FONT_SIZE;
     private final String SCORES_FILE;
@@ -44,14 +39,11 @@ public class GameEndScreen {
 
     public GameEndScreen(String playerName, double playerScore,
                          Properties gameProperties, Properties messageProperties) {
+        super(gameProperties, messageProperties, new Image(gameProperties.getProperty("backgroundImage.gameEnd")));
+
         this.PLAYER_NAME = playerName;
         this.PLAYER_SCORE = playerScore;
 
-        this.GAME_PROPS = gameProperties;
-        this.MESSAGE_PROPS = messageProperties;
-
-        BACKGROUND_IMAGE = new Image(GAME_PROPS.getProperty("backgroundImage.gameEnd"));
-        FONT_PATH = GAME_PROPS.getProperty("font");
         SCORES_FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("gameEnd.scores.fontSize"));
         STATUS_FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("gameEnd.status.fontSize"));
 
@@ -79,8 +71,9 @@ public class GameEndScreen {
     /**
      * Renders the game end screen.
      */
-    public void render() {
-        BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, Window.getHeight() / 2.0);
+    @Override
+    public void draw() {
+        super.draw();
 
         Font scoresFont = new Font(FONT_PATH, SCORES_FONT_SIZE);
         scoresFont.drawString(SCORES_TEXT, (Window.getWidth() -
@@ -126,7 +119,7 @@ public class GameEndScreen {
 
         int numOfRecords = scores.size();
 
-        // Returns the 5 best scores. If there is less than 5 scores, all scores will be returned.
+        // Returns the 5 best scores. If there are less than 5 scores, all scores will be returned.
         return new ArrayList<>(scores.subList(0, Math.min(numOfRecords, MAX_NUM_SCORES)));
     }
 }

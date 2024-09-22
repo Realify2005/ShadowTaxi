@@ -5,15 +5,9 @@ import java.util.Properties;
  * Class to render the home screen.
  * Also handles the ongoing game scrolling info background.
  */
-public class HomeScreen {
-
-    // Constants related to properties that other variables refer to.
-    private final Properties GAME_PROPS;
-    private final Properties MESSAGE_PROPS;
+public class HomeScreen extends Screen {
 
     // Constants related to rendering.
-    private final Image HOME_BACKGROUND_IMAGE;
-    private final String FONT_PATH;
     private final int TITLE_FONT_SIZE;
     private final int INSTRUCTION_FONT_SIZE;
 
@@ -26,11 +20,7 @@ public class HomeScreen {
     private final double INSTRUCTION_Y;
 
     public HomeScreen(Properties gameProps, Properties messageProps) {
-        this.GAME_PROPS = gameProps;
-        this.MESSAGE_PROPS = messageProps;
-
-        HOME_BACKGROUND_IMAGE = new Image(GAME_PROPS.getProperty("backgroundImage.home"));
-        FONT_PATH = GAME_PROPS.getProperty("font");
+        super(gameProps, messageProps, new Image(gameProps.getProperty("backgroundImage.home")));
 
         TITLE_FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("home.title.fontSize"));
         INSTRUCTION_FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("home.instruction.fontSize"));
@@ -43,11 +33,12 @@ public class HomeScreen {
     }
 
     /**
-     * Renders the home screen.
+     * Draws the home screen.
      */
-    public void render() {
+    @Override
+    public void draw() {
         // Draw home background image
-        HOME_BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, Window.getHeight() / 2.0);
+        super.draw();
 
         // Draw home title message
         Font titleFont = new Font(FONT_PATH, TITLE_FONT_SIZE);
