@@ -18,7 +18,7 @@ public class OngoingGameScreen extends Screen {
     private ArrayList<Coin> coins;
     private ArrayList<InvinciblePower> invinciblePowers;
     private TripEndFlag tripEndFlag;
-    private CoinState coinState;
+    private PowerUpState powerUpState;
     private GameStats gameStats;
     private Gameplay gameplay;
 
@@ -37,9 +37,9 @@ public class OngoingGameScreen extends Screen {
         // Scroll speed for the ongoing game background can be referred to taxi's "scroll speed".
         SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
 
-        coinState = new CoinState(gameProps);
+        powerUpState = new PowerUpState(gameProps);
         gameStats = new GameStats(gameProps, messageProps);
-        gameplay = new Gameplay(tripEndFlag, coinState, gameStats, gameProps, messageProps);
+        gameplay = new Gameplay(tripEndFlag, powerUpState, gameStats, gameProps, messageProps);
         loadGameObjects(gameProps.getProperty("gamePlay.objectsFile"));
         loadWeatherInfo(gameProps.getProperty("gamePlay.weatherFile"));
 
@@ -103,20 +103,23 @@ public class OngoingGameScreen extends Screen {
         for (Coin coin : coins) {
             coin.update(input);
             if (taxi.collidedWith(coin) && !coin.isTaken()) {
-                coinState.activateCoinEffect(coin);
+                powerUpState.activateCoinEffect(coin);
             }
         }
 
         for (InvinciblePower invinciblePower : invinciblePowers) {
             invinciblePower.update(input);
-            // if taxi collided with invincible power etc
+            if (taxi.collidedWith(invinciblePower) && !invinciblePower.isTaken()) {
+                powerUpState.activateInvincibleEffect(invinciblePower);
+            }
+            // if driver collided with invincible power too...
         }
 
         for (Passenger passenger : passengers) {
             passenger.update(input, isRaining);
         }
 
-        coinState.update();
+        powerUpState.update();
         gameStats.update();
         gameplay.update(input);
         taxi.update(input);
@@ -149,7 +152,7 @@ public class OngoingGameScreen extends Screen {
                     int distanceY = Integer.parseInt(objectData[5]);
                     int hasUmbrella = Integer.parseInt(objectData[6]);
                     passengers.add(new Passenger(passengerX, passengerY, priority, endX, distanceY, hasUmbrella,
-                            taxi, coinState, GAME_PROPS));
+                            taxi, powerUpState, GAME_PROPS));
                     break;
                 case "COIN":
                     int coinX = Integer.parseInt(objectData[1]);
@@ -194,9 +197,9 @@ public class OngoingGameScreen extends Screen {
         passengers = new ArrayList<>();
         coins = new ArrayList<>();
         tripEndFlag = null;
-        coinState = new CoinState(GAME_PROPS);
+        powerUpState = new PowerUpState(GAME_PROPS);
         gameStats = new GameStats(GAME_PROPS, MESSAGE_PROPS);
-        gameplay = new Gameplay(tripEndFlag, coinState, gameStats, GAME_PROPS, MESSAGE_PROPS);
+        gameplay = new Gameplay(tripEndFlag, powerUpState, gameStats, GAME_PROPS, MESSAGE_PROPS);
         resetBackground();
         loadGameObjects(GAME_PROPS.getProperty("gamePlay.objectsFile"));
         currentFrame = 0;

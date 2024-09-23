@@ -47,10 +47,10 @@ public class Passenger {
     private boolean isPenaltyImposed;
 
     private Taxi taxi;
-    private CoinState coinState;
+    private PowerUpState powerUpState;
 
     public Passenger(int x, int y, int priority, int endX, int distanceY, int hasUmbrella,
-                     Taxi taxi, CoinState coinState, Properties properties) {
+                     Taxi taxi, PowerUpState powerUpState, Properties properties) {
         this.x = x;
         this.y = y;
         this.originalPriority = this.priority = priority;
@@ -61,7 +61,7 @@ public class Passenger {
         this.hasUmbrella = (hasUmbrella != 0); // Convert int from world file to boolean
         this.penalty = 0;
         this.taxi = taxi;
-        this.coinState = coinState;
+        this.powerUpState = powerUpState;
         this.isPickedUp = false;
         this.isDroppedOff = false;
         this.isMovingToFlag = false;
@@ -103,7 +103,7 @@ public class Passenger {
         updateWithTaxiMovement(taxi.getX(), taxi.getY());
 
         // Decrease passenger's priority number if passenger is on an ongoing trip and coin effect is in place
-        if (this.isPickedUp && coinState.isCoinActivated()) {
+        if (this.isPickedUp && powerUpState.isCoinActivated()) {
             this.decreasePriority();
         }
 

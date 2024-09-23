@@ -15,7 +15,7 @@ public class Gameplay {
     private Taxi taxi;
     private Trip trip;
     private TripEndFlag tripEndFlag;
-    private final CoinState COIN_STATE;
+    private final PowerUpState POWER_UP_STATE;
     private final GameStats GAME_STATS;
 
     // Full list of passengers.
@@ -34,11 +34,11 @@ public class Gameplay {
     private final String PRIORITY_TEXT;
     private final String PENALTY_TEXT;
 
-    public Gameplay(TripEndFlag tripEndFlag, CoinState coinState,
+    public Gameplay(TripEndFlag tripEndFlag, PowerUpState coinState,
                     GameStats gameStats, Properties gameProps, Properties messageProps) {
         this.trip = null;
         this.tripEndFlag = tripEndFlag;
-        this.COIN_STATE = coinState;
+        this.POWER_UP_STATE = coinState;
         this.GAME_STATS = gameStats;
 
         this.GAME_PROPS = gameProps;
@@ -158,7 +158,7 @@ public class Gameplay {
     public void startTrip(Passenger passenger) {
         tripEndFlag = new TripEndFlag(passenger.getEndX(), passenger.getY(),
                 passenger.getDistanceY(), GAME_PROPS);
-        trip = new Trip(taxi, passenger, tripEndFlag, COIN_STATE, GAME_STATS, GAME_PROPS);
+        trip = new Trip(taxi, passenger, tripEndFlag, POWER_UP_STATE, GAME_STATS, GAME_PROPS);
         trip.beginTrip();
     }
 }

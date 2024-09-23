@@ -11,25 +11,23 @@ public class Trip {
     private final Taxi TAXI;
     private final Passenger PASSENGER;
     private final TripEndFlag TRIP_END_FLAG;
-    private final CoinState COIN_STATE;
+    private final PowerUpState POWER_UP_STATE;
     private final GameStats GAME_STATS;
 
     // Variables
-    private double earnings;
     private boolean isOngoing;
     private boolean isCompleted;
     private double penalty;
 
     public Trip(Taxi taxi, Passenger passenger, TripEndFlag tripEndFlag,
-                CoinState coinState, GameStats gameStats, Properties properties) {
+                PowerUpState powerUpState, GameStats gameStats, Properties properties) {
         this.TAXI = taxi;
         this.PASSENGER = passenger;
         this.TRIP_END_FLAG = tripEndFlag;
         this.isOngoing = false;
         this.isCompleted = false;
-        this.earnings = getPassengerEarnings();
         this.penalty = 0;
-        this.COIN_STATE = coinState;
+        this.POWER_UP_STATE = powerUpState;
         this.GAME_STATS = gameStats;
 
         PENALTY_RATE = Double.parseDouble(properties.getProperty("trip.penalty.perY"));
@@ -43,7 +41,7 @@ public class Trip {
         this.isOngoing = true;
 
         // Decrease passenger priority for when passenger is picked up whilst a coin effect is already currently active
-        if (PASSENGER.isPickedUp() && COIN_STATE.isCoinActivated()) {
+        if (PASSENGER.isPickedUp() && POWER_UP_STATE.isCoinActivated()) {
             PASSENGER.decreasePriority();
         }
     }

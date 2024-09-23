@@ -116,11 +116,11 @@ public class Taxi {
     }
 
     /**
-     * Checks if taxi has collided with any coins.
+     * Checks if taxi has collided with any power-ups.
      */
-    public boolean collidedWith(Coin coin) {
-        double collisionRange = RADIUS + coin.getRadius();
-        return getDistanceTo(coin.getX(), coin.getY()) <= collisionRange;
+    public boolean collidedWith(PowerUp powerUp) {
+        double collisionRange = RADIUS + powerUp.getRadius();
+        return getDistanceTo(powerUp.getX(), powerUp.getY()) <= collisionRange;
     }
 
     /**
