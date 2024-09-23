@@ -62,7 +62,9 @@ public class Trip {
             if (taxiFlagDistance > TRIP_END_FLAG.getRadius()) {
                 this.penalty = PENALTY_RATE * Math.abs(TAXI.getY() - TRIP_END_FLAG.getY());
 
-                // Need to get updated earnings here to account for coin effect
+                PASSENGER.setPenalty(penalty);
+
+/*                // Need to get updated earnings here to account for coin effect
                 earnings = getPassengerEarnings();
                 earnings -= penalty;
 
@@ -72,7 +74,7 @@ public class Trip {
                 }
 
                 PASSENGER.setEarnings(earnings); // Update earnings if penalty have been imposed
-                PASSENGER.penaltyWasImposed(); // Flag to stop doing it multiple times across multiple frames
+                PASSENGER.penaltyWasImposed(); // Flag to stop doing it multiple times across multiple frames*/
             }
         }
     }

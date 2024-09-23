@@ -16,10 +16,13 @@ public class OngoingGameScreen extends Screen {
     private Taxi taxi;
     private ArrayList<Passenger> passengers;
     private ArrayList<Coin> coins;
+    private ArrayList<InvinciblePower> invinciblePowers;
     private TripEndFlag tripEndFlag;
     private CoinState coinState;
     private GameStats gameStats;
     private Gameplay gameplay;
+
+    private boolean isRaining;
 
     // Ongoing game background positions
     private double background1Y = Window.getHeight() / 2.0; // Y-coordinate = 384
@@ -51,9 +54,14 @@ public class OngoingGameScreen extends Screen {
         Weather currentWeather = getCurrentWeather();
 
         assert currentWeather != null; // This should always pass as long as the weather file is set up properly.
-        BACKGROUND_IMAGE = currentWeather.getType().equals("SUNNY")
-                ? new Image(this.GAME_PROPS.getProperty("backgroundImage.sunny"))
-                : new Image(this.GAME_PROPS.getProperty("backgroundImage.raining"));
+
+        if (currentWeather.getType().equals("SUNNY")) {
+            BACKGROUND_IMAGE = new Image(this.GAME_PROPS.getProperty("backgroundImage.sunny"));
+            isRaining = false;
+        } else {
+            BACKGROUND_IMAGE = new Image(this.GAME_PROPS.getProperty("backgroundImage.raining"));
+            isRaining = true;
+        }
 
         // Draw first background image, coordinate (512, 384)
         BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, background1Y);
@@ -99,8 +107,13 @@ public class OngoingGameScreen extends Screen {
             }
         }
 
+        for (InvinciblePower invinciblePower : invinciblePowers) {
+            invinciblePower.update(input);
+            // if taxi collided with invincible power etc
+        }
+
         for (Passenger passenger : passengers) {
-            passenger.update(input);
+            passenger.update(input, isRaining);
         }
 
         coinState.update();
@@ -119,6 +132,7 @@ public class OngoingGameScreen extends Screen {
         String[][] gameObjects = IOUtils.readCommaSeparatedFile(filePath);
         passengers = new ArrayList<>();
         coins = new ArrayList<>();
+        invinciblePowers = new ArrayList<>();
         for (String[] objectData : gameObjects) {
             String Item = objectData[0];
             switch (Item) {
@@ -133,7 +147,8 @@ public class OngoingGameScreen extends Screen {
                     int priority = Integer.parseInt(objectData[3]);
                     int endX = Integer.parseInt(objectData[4]);
                     int distanceY = Integer.parseInt(objectData[5]);
-                    passengers.add(new Passenger(passengerX, passengerY, priority, endX, distanceY,
+                    int hasUmbrella = Integer.parseInt(objectData[6]);
+                    passengers.add(new Passenger(passengerX, passengerY, priority, endX, distanceY, hasUmbrella,
                             taxi, coinState, GAME_PROPS));
                     break;
                 case "COIN":
@@ -141,6 +156,10 @@ public class OngoingGameScreen extends Screen {
                     int coinY = Integer.parseInt(objectData[2]);
                     coins.add(new Coin(coinX, coinY, GAME_PROPS));
                     break;
+                case "INVINCIBLE_POWER":
+                    int invinciblePowerX = Integer.parseInt(objectData[1]);
+                    int invinciblePowerY = Integer.parseInt(objectData[2]);
+                    invinciblePowers.add(new InvinciblePower(invinciblePowerX, invinciblePowerY, GAME_PROPS));
             }
         }
         gameplay.initialiseTaxi(taxi);

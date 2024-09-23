@@ -30,11 +30,14 @@ public class Passenger {
     // Variables
     private int x;
     private int y;
+    private int originalPriority;
     private int priority;
     private int endX;
     private int distanceY;
+    private boolean hasUmbrella;
     private int finalFlagX;
     private int finalFlagY;
+    private double penalty;
     private boolean isPickedUp;
     private boolean isMovingToFlag;
     private boolean isDroppedOff;
@@ -46,15 +49,17 @@ public class Passenger {
     private Taxi taxi;
     private CoinState coinState;
 
-    public Passenger(int x, int y, int priority, int endX, int distanceY,
+    public Passenger(int x, int y, int priority, int endX, int distanceY, int hasUmbrella,
                      Taxi taxi, CoinState coinState, Properties properties) {
         this.x = x;
         this.y = y;
-        this.priority = priority;
+        this.originalPriority = this.priority = priority;
         this.endX = endX;
         this.distanceY = distanceY;
         this.finalFlagX = -1; // has not been set
         this.finalFlagY = -1; // has not been set
+        this.hasUmbrella = (hasUmbrella != 0); // Convert int from world file to boolean
+        this.penalty = 0;
         this.taxi = taxi;
         this.coinState = coinState;
         this.isPickedUp = false;
@@ -87,7 +92,7 @@ public class Passenger {
     /**
      * Constantly updates the passenger entity
      */
-    public void update(Input input) {
+    public void update(Input input, boolean isRaining) {
         draw(); // Draws the passenger entity.
         displayEarnings(); // Displays the expected earnings for each passenger entity.
         if (input.isDown(Keys.UP)) {
@@ -101,13 +106,28 @@ public class Passenger {
         if (this.isPickedUp && coinState.isCoinActivated()) {
             this.decreasePriority();
         }
+
+        if (!hasUmbrella && !isDroppedOff) {
+            if (isRaining) {
+                this.priority = 1;
+            } else {
+                this.priority = originalPriority;
+            }
+            this.earnings = calculateEarnings();
+        }
     }
 
     /**
      * Calculate earnings for passenger
      */
     public double calculateEarnings() {
-        return distanceY * TRIP_RATE + priority * getPriorityRate();
+        double updatedEarnings = distanceY * TRIP_RATE + getPriorityRate() - penalty;
+        if (updatedEarnings >= 0) {
+            return updatedEarnings;
+        } else {
+            // Earnings cannot be negative
+            return 0;
+        }
     }
 
     /**
@@ -151,8 +171,8 @@ public class Passenger {
                 this.y -= WALK_SPEED_Y;
             }
 
-            // Check if the passenger is now close enough to the taxi to be picked up
-            if (calculateDistance(taxiX, taxiY) <= 1) {
+            // Check if the passenger can now be picked up by taxi (i.e. coordinates are equal to taxi)
+            if (calculateDistance(taxiX, taxiY) == 0) {
                 this.isPickedUp = true;  // Passenger is picked up
             }
         }
@@ -250,10 +270,12 @@ public class Passenger {
      */
     public void decreasePriority() {
         // Only can decrease passenger's priority maximum once
-        if (!isPriorityDecreased && priority > 1) {
-            priority--;
+        if (!isPriorityDecreased && originalPriority > 1) {
+            originalPriority--;
             // Recalculate earnings after decreasing priority due to coins effect
             this.earnings = calculateEarnings();
+
+            if (hasUmbrella) {priority = originalPriority;} // These passengers' priority are not affected by weather
         }
         isPriorityDecreased = true;
     }
@@ -322,11 +344,12 @@ public class Passenger {
         return isPenaltyImposed;
     }
 
-    public void penaltyWasImposed() {
-        this.isPenaltyImposed = true;
-    }
-
     public int getRadius() {
         return RADIUS;
+    }
+
+    public void setPenalty(double penalty) {
+        this.penalty = penalty;
+        isPenaltyImposed = true;
     }
 }
