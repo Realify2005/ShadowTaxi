@@ -19,5 +19,5 @@ public abstract class Screen implements Drawable {
     @Override
     public void draw() {
         BACKGROUND_IMAGE.draw(Window.getWidth() / 2.0, Window.getHeight() / 2.0);
-    };
+    }
 }

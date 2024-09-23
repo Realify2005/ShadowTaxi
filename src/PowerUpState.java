@@ -57,32 +57,23 @@ public class PowerUpState {
         updateInvincibleFrameCount();
     }
 
-    /***
-     * Activates the coin effect in the gameplay.
-     * (i.e. Result of taxi collision with coin).
-     */
-    public void activateCoinEffect(Coin coin) {
-        // Set coin to be "taken" so that it will no longer be rendered on the game
-        coin.wasTaken();
-        this.isCoinActivated = true;
-        refreshCoinFrameCount();
-    }
-
-    public void activateInvincibleEffect(InvinciblePower invinciblePower) {
-        invinciblePower.wasTaken();
-        this.isInvincibleActivated = true;
-        refreshInvincibleFrameCount();
+    public void activatePowerUp(PowerUp powerUp) {
+        powerUp.activate(this);
     }
 
     /***
      * Regenerates the frame count for coin taking effect.
      * Does this everytime coin is picked up.
      */
-    private void refreshCoinFrameCount() {
+    public void refreshCoinFrameCount() {
         this.coinFrameCount = INITIAL_FRAME_COUNT;
+        this.isCoinActivated = true;
     }
 
-    private void refreshInvincibleFrameCount() {this.invincibleFrameCount = INITIAL_FRAME_COUNT; }
+    public void refreshInvincibleFrameCount() {
+        this.invincibleFrameCount = INITIAL_FRAME_COUNT;
+        this.isInvincibleActivated = true;
+    }
 
     /***
      * Draws the coin frame text on the top right of gameplay screen.

@@ -15,8 +15,7 @@ public class OngoingGameScreen extends Screen {
     // Game entities
     private Taxi taxi;
     private ArrayList<Passenger> passengers;
-    private ArrayList<Coin> coins;
-    private ArrayList<InvinciblePower> invinciblePowers;
+    private ArrayList<PowerUp> powerUps;
     private TripEndFlag tripEndFlag;
     private PowerUpState powerUpState;
     private GameStats gameStats;
@@ -100,19 +99,12 @@ public class OngoingGameScreen extends Screen {
 
         }
 
-        for (Coin coin : coins) {
-            coin.update(input);
-            if (taxi.collidedWith(coin) && !coin.isTaken()) {
-                powerUpState.activateCoinEffect(coin);
+        for (PowerUp powerUp : powerUps) {
+            powerUp.update(input);
+            if (taxi.collidedWith(powerUp) && !powerUp.isTaken()) {
+                powerUpState.activatePowerUp(powerUp);
             }
-        }
-
-        for (InvinciblePower invinciblePower : invinciblePowers) {
-            invinciblePower.update(input);
-            if (taxi.collidedWith(invinciblePower) && !invinciblePower.isTaken()) {
-                powerUpState.activateInvincibleEffect(invinciblePower);
-            }
-            // if driver collided with invincible power too...
+            // If driver collided with coin/invincible power too...
         }
 
         for (Passenger passenger : passengers) {
@@ -134,8 +126,7 @@ public class OngoingGameScreen extends Screen {
     private void loadGameObjects(String filePath) {
         String[][] gameObjects = IOUtils.readCommaSeparatedFile(filePath);
         passengers = new ArrayList<>();
-        coins = new ArrayList<>();
-        invinciblePowers = new ArrayList<>();
+        powerUps = new ArrayList<>();
         for (String[] objectData : gameObjects) {
             String Item = objectData[0];
             switch (Item) {
@@ -157,12 +148,12 @@ public class OngoingGameScreen extends Screen {
                 case "COIN":
                     int coinX = Integer.parseInt(objectData[1]);
                     int coinY = Integer.parseInt(objectData[2]);
-                    coins.add(new Coin(coinX, coinY, GAME_PROPS));
+                    powerUps.add(new Coin(coinX, coinY, GAME_PROPS));
                     break;
                 case "INVINCIBLE_POWER":
                     int invinciblePowerX = Integer.parseInt(objectData[1]);
                     int invinciblePowerY = Integer.parseInt(objectData[2]);
-                    invinciblePowers.add(new InvinciblePower(invinciblePowerX, invinciblePowerY, GAME_PROPS));
+                    powerUps.add(new InvinciblePower(invinciblePowerX, invinciblePowerY, GAME_PROPS));
             }
         }
         gameplay.initialiseTaxi(taxi);
@@ -195,7 +186,7 @@ public class OngoingGameScreen extends Screen {
     public void resetGame() {
         taxi = null;
         passengers = new ArrayList<>();
-        coins = new ArrayList<>();
+        powerUps = new ArrayList<>();
         tripEndFlag = null;
         powerUpState = new PowerUpState(GAME_PROPS);
         gameStats = new GameStats(GAME_PROPS, MESSAGE_PROPS);

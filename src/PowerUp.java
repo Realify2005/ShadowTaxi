@@ -10,14 +10,14 @@ import java.util.Properties;
 public abstract class PowerUp {
 
     // Constants
-    protected final Image IMAGE;
-    protected final double RADIUS;
-    protected final int SCROLL_SPEED;
+    private final Image IMAGE;
+    private final double RADIUS;
+    private final int SCROLL_SPEED;
 
     // Variables
-    protected int x;
-    protected int y;
-    protected boolean isTaken;
+    private int x;
+    private int y;
+    private boolean isTaken;
 
     public PowerUp(int x, int y, Properties properties, String imageProperty, String radiusProperty) {
         this.x = x;
@@ -40,6 +40,8 @@ public abstract class PowerUp {
         }
         draw();
     }
+
+    public abstract void activate(PowerUpState powerUpState);
 
     /***
      * Moves the power-up entity down.

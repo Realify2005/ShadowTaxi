@@ -12,4 +12,14 @@ public class InvinciblePower extends PowerUp {
         super(x, y, properties, "gameObjects.invinciblePower.image",
                 "gameObjects.invinciblePower.radius");
     }
+
+    /***
+     * Activates the invincible power in the gameplay.
+     * (i.e. Result of taxi/driver collision with invincible power).
+     */
+    @Override
+    public void activate(PowerUpState powerUpState) {
+        this.wasTaken();
+        powerUpState.refreshInvincibleFrameCount();
+    }
 }
