@@ -13,6 +13,7 @@ public class Gameplay {
 
     // Variables
     private Taxi taxi;
+    private Driver driver;
     private Trip trip;
     private TripEndFlag tripEndFlag;
     private final PowerUpState POWER_UP_STATE;
@@ -100,6 +101,13 @@ public class Gameplay {
         if (trip != null && taxi.isPassengerMovingToFlag()) {
             trip.setTripAsCompleted();
         }
+
+        if (taxi.isAdjacentToDriver(driver)) {
+            taxi.driverEntered();
+            driver.enteredTaxi();
+        }
+
+        driver.update(input, taxi);
     }
 
     /**
@@ -139,11 +147,16 @@ public class Gameplay {
     }
 
     /**
-     * Initialises the taxi object.
+     * Initialises the taxi entity.
      */
     public void initialiseTaxi(Taxi taxi) {
         this.taxi = taxi;
     }
+
+    /**
+     * Initialises the driver entity.
+     */
+    public void initialiseDriver(Driver driver) { this.driver = driver; }
 
     /**
      * Initialises the list of passengers.

@@ -50,7 +50,7 @@ public class Passenger {
     private PowerUpState powerUpState;
 
     public Passenger(int x, int y, int priority, int endX, int distanceY, int hasUmbrella,
-                     Taxi taxi, PowerUpState powerUpState, Properties properties) {
+                     Taxi taxi, PowerUpState powerUpState, Properties gameProps, Properties messageProps) {
         this.x = x;
         this.y = y;
         this.originalPriority = this.priority = priority;
@@ -69,22 +69,22 @@ public class Passenger {
         this.isEarningsAdded = false;
         this.isPenaltyImposed = false;
 
-        IMAGE = new Image(properties.getProperty("gameObjects.passenger.image"));
-        WALK_SPEED_X = Integer.parseInt(properties.getProperty("gameObjects.passenger.walkSpeedX"));
-        WALK_SPEED_Y = Integer.parseInt(properties.getProperty("gameObjects.passenger.walkSpeedY"));
+        IMAGE = new Image(gameProps.getProperty("gameObjects.passenger.image"));
+        WALK_SPEED_X = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.walkSpeedX"));
+        WALK_SPEED_Y = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.walkSpeedY"));
 
-        FONT_SIZE = Integer.parseInt(properties.getProperty("gameObjects.passenger.fontSize"));
-        FONT_PATH = properties.getProperty("font");
+        FONT_SIZE = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.fontSize"));
+        FONT_PATH = gameProps.getProperty("font");
 
-        TRIP_RATE = Double.parseDouble(properties.getProperty("trip.rate.perY"));
-        PRIORITY_RATE_1 = Integer.parseInt(properties.getProperty("trip.rate.priority1"));
-        PRIORITY_RATE_2 = Integer.parseInt(properties.getProperty("trip.rate.priority2"));
-        PRIORITY_RATE_3 = Integer.parseInt(properties.getProperty("trip.rate.priority3"));
+        TRIP_RATE = Double.parseDouble(gameProps.getProperty("trip.rate.perY"));
+        PRIORITY_RATE_1 = Integer.parseInt(gameProps.getProperty("trip.rate.priority1"));
+        PRIORITY_RATE_2 = Integer.parseInt(gameProps.getProperty("trip.rate.priority2"));
+        PRIORITY_RATE_3 = Integer.parseInt(gameProps.getProperty("trip.rate.priority3"));
 
-        RADIUS = Integer.parseInt(properties.getProperty("gameObjects.passenger.taxiDetectRadius"));
+        RADIUS = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.taxiDetectRadius"));
 
         // Scroll speed for passenger can be referred to taxi's "scroll speed".
-        SCROLL_SPEED = Integer.parseInt(properties.getProperty("gameObjects.taxi.speedY"));
+        SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
 
         this.earnings = calculateEarnings();
     }

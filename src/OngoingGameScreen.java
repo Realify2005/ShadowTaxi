@@ -12,8 +12,11 @@ public class OngoingGameScreen extends Screen {
     // Constant that defines the vertical scroll speed of the ongoing game background.
     private final int SCROLL_SPEED;
 
+    private final int WINDOW_MAX_HEIGHT;
+
     // Game entities
     private Taxi taxi;
+    private Driver driver;
     private ArrayList<Passenger> passengers;
     private ArrayList<PowerUp> powerUps;
     private TripEndFlag tripEndFlag;
@@ -35,6 +38,8 @@ public class OngoingGameScreen extends Screen {
 
         // Scroll speed for the ongoing game background can be referred to taxi's "scroll speed".
         SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
+
+        WINDOW_MAX_HEIGHT = Integer.parseInt(gameProps.getProperty("window.height"));
 
         powerUpState = new PowerUpState(gameProps);
         gameStats = new GameStats(gameProps, messageProps);
@@ -135,6 +140,11 @@ public class OngoingGameScreen extends Screen {
                     int taxiY = Integer.parseInt(objectData[2]);
                     taxi = new Taxi(taxiX, taxiY, gameplay, GAME_PROPS);
                     break;
+                case "DRIVER":
+                    int driverX = Integer.parseInt(objectData[1]);
+                    int driverY = Integer.parseInt(objectData[2]);
+                    driver = new Driver(driverX, driverY, GAME_PROPS, MESSAGE_PROPS);
+                    break;
                 case "PASSENGER":
                     int passengerX = Integer.parseInt(objectData[1]);
                     int passengerY = Integer.parseInt(objectData[2]);
@@ -143,7 +153,7 @@ public class OngoingGameScreen extends Screen {
                     int distanceY = Integer.parseInt(objectData[5]);
                     int hasUmbrella = Integer.parseInt(objectData[6]);
                     passengers.add(new Passenger(passengerX, passengerY, priority, endX, distanceY, hasUmbrella,
-                            taxi, powerUpState, GAME_PROPS));
+                            taxi, powerUpState, GAME_PROPS, MESSAGE_PROPS));
                     break;
                 case "COIN":
                     int coinX = Integer.parseInt(objectData[1]);
@@ -157,6 +167,7 @@ public class OngoingGameScreen extends Screen {
             }
         }
         gameplay.initialiseTaxi(taxi);
+        gameplay.initialiseDriver(driver);
         gameplay.initialisePassengers(passengers);
     }
 
@@ -200,7 +211,19 @@ public class OngoingGameScreen extends Screen {
      * Checks if the game has ended.
      */
     public boolean hasGameEnded() {
-        return gameStats.getRemainingFrames() <= 0 || gameStats.getTotalScore() >= 500;
+        return ranOutOfFrames() || winningScoreReached() || taxiLeftScreenWithoutDriver();
+    }
+
+    private boolean ranOutOfFrames() {
+        return gameStats.getRemainingFrames() <= 0;
+    }
+
+    private boolean winningScoreReached() {
+        return gameStats.getTotalScore() >= 500;
+    }
+
+    private boolean taxiLeftScreenWithoutDriver() {
+        return (taxi.getY() >= WINDOW_MAX_HEIGHT) && !taxi.hasDriver();
     }
 
     /**

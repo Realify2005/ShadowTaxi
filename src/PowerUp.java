@@ -7,7 +7,7 @@ import java.util.Properties;
  */
 
 
-public abstract class PowerUp {
+public abstract class PowerUp implements Drawable {
 
     // Constants
     private final Image IMAGE;
@@ -53,7 +53,8 @@ public abstract class PowerUp {
     /***
      * Draws the power-up entity on game screen.
      */
-    protected void draw() {
+    @Override
+    public void draw() {
         if (!isTaken) {
             IMAGE.draw(x, y);
         }

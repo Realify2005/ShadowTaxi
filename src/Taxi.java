@@ -13,11 +13,13 @@ public class Taxi {
 
     // Constant that defines the horizontal and vertical speed of taxi.
     private final int SPEED_X;
+    private final int SPEED_Y;
 
     // Variables
     private int x;
     private int y;
     private boolean isTaxiMoved;
+    private boolean hasDriver;
     private Passenger currentPassenger;
 
     private final Gameplay GAMEPLAY;
@@ -26,12 +28,14 @@ public class Taxi {
         this.x = x;
         this.y = y;
         this.isTaxiMoved = false;
+        this.hasDriver = false;
         this.currentPassenger = null;
         this.GAMEPLAY = gameplay;
 
         IMAGE = new Image(properties.getProperty("gameObjects.taxi.image"));
         RADIUS = Double.parseDouble(properties.getProperty("gameObjects.taxi.radius"));
         SPEED_X = Integer.parseInt(properties.getProperty("gameObjects.taxi.speedX"));
+        SPEED_Y = Integer.parseInt(properties.getProperty("gameObjects.taxi.speedY"));
     }
 
     /**
@@ -42,20 +46,26 @@ public class Taxi {
         checkIsCurrentPassengerDroppedOff();
         isTaxiMoved = false;
 
-        if (input.isDown(Keys.LEFT)) {
-            moveLeft();
-            isTaxiMoved = true;
-        } else if (input.isDown(Keys.RIGHT)) {
-            moveRight();
-            isTaxiMoved = true;
-        } else if (input.isDown(Keys.UP)) {
-            // In reality, it is only the background that has moved. However, for this purpose taxi "has" moved.
-            isTaxiMoved = true;
-        }
+        if (hasDriver) {
+            if (input.isDown(Keys.LEFT)) {
+                moveLeft();
+                isTaxiMoved = true;
+            } else if (input.isDown(Keys.RIGHT)) {
+                moveRight();
+                isTaxiMoved = true;
+            } else if (input.isDown(Keys.UP)) {
+                // In reality, it is only the background that has moved. However, for this purpose taxi "has" moved.
+                isTaxiMoved = true;
+            }
 
-        // If taxi has not moved in a unit time, check if taxi can pick up a passenger or drop a passenger to the flag.
-        if (!isTaxiMoved) {
-            GAMEPLAY.checkIfTaxiIsAdjacentToPassengerOrFlag();
+            // If taxi has not moved in a unit time, check if taxi can pick up a passenger or drop a passenger to the flag.
+            if (!isTaxiMoved) {
+                GAMEPLAY.checkIfTaxiIsAdjacentToPassengerOrFlag();
+            }
+        } else {
+            if (input.isDown(Keys.UP)) {
+                moveDown();
+            }
         }
     }
 
@@ -71,6 +81,10 @@ public class Taxi {
      */
     private void moveRight() {
         this.x += SPEED_X;
+    }
+
+    private void moveDown() {
+        this.y += SPEED_Y;
     }
 
     /**
@@ -130,6 +144,10 @@ public class Taxi {
         return getDistanceTo(passenger.getX(), passenger.getY()) <= passenger.getRadius();
     }
 
+    public boolean isAdjacentToDriver(Driver driver) {
+        return getDistanceTo(driver.getX(), driver.getY()) <= driver.getTaxiGetInRadius();
+    }
+
     /**
      * Helper function to get distances from taxi to another object.
      * Used for distance between taxi and passenger, between taxi and trip end flag, and between taxi and coins.
@@ -172,6 +190,14 @@ public class Taxi {
 
     public Passenger getPassenger() {
         return currentPassenger;
+    }
+
+    public void driverEntered() {
+        this.hasDriver = true;
+    }
+
+    public boolean hasDriver() {
+        return hasDriver;
     }
 
 }
