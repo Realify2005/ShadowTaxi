@@ -1,14 +1,11 @@
 import java.util.Properties;
 import bagel.*;
 import bagel.Font;
-import bagel.Image;
 
 /**
  * Class for the passenger entity.
  */
-public class Passenger {
-    private final Image IMAGE;
-
+public class Passenger extends Entity {
     // Constants related to font for rendering.
     private final int FONT_SIZE;
     private final String FONT_PATH;
@@ -22,14 +19,8 @@ public class Passenger {
     // Constants related to the movement speed of passengers.
     private final int WALK_SPEED_X;
     private final int WALK_SPEED_Y;
-    private final int SCROLL_SPEED;
-
-    // Radius for collision detection between taxi and passenger.
-    private final int RADIUS;
 
     // Variables
-    private int x;
-    private int y;
     private int originalPriority;
     private int priority;
     private int endX;
@@ -51,8 +42,8 @@ public class Passenger {
 
     public Passenger(int x, int y, int priority, int endX, int distanceY, int hasUmbrella,
                      Taxi taxi, PowerUpState powerUpState, Properties gameProps, Properties messageProps) {
-        this.x = x;
-        this.y = y;
+        super(x, y, gameProps,"gameObjects.passenger.image",
+                "gameObjects.passenger.taxiDetectRadius");
         this.originalPriority = this.priority = priority;
         this.endX = endX;
         this.distanceY = distanceY;
@@ -69,7 +60,6 @@ public class Passenger {
         this.isEarningsAdded = false;
         this.isPenaltyImposed = false;
 
-        IMAGE = new Image(gameProps.getProperty("gameObjects.passenger.image"));
         WALK_SPEED_X = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.walkSpeedX"));
         WALK_SPEED_Y = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.walkSpeedY"));
 
@@ -80,11 +70,6 @@ public class Passenger {
         PRIORITY_RATE_1 = Integer.parseInt(gameProps.getProperty("trip.rate.priority1"));
         PRIORITY_RATE_2 = Integer.parseInt(gameProps.getProperty("trip.rate.priority2"));
         PRIORITY_RATE_3 = Integer.parseInt(gameProps.getProperty("trip.rate.priority3"));
-
-        RADIUS = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.taxiDetectRadius"));
-
-        // Scroll speed for passenger can be referred to taxi's "scroll speed".
-        SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
 
         this.earnings = calculateEarnings();
     }
@@ -149,8 +134,8 @@ public class Passenger {
         if (!isPickedUp) {
             double preEarnings = calculateEarnings();
             Font font = new Font(FONT_PATH, FONT_SIZE);
-            font.drawString(String.format("%.1f", preEarnings), x - 100, y); // Draw estimated earnings text
-            font.drawString(Integer.toString(priority), x - 30, y); // Draw priority text
+            font.drawString(String.format("%.1f", preEarnings), getX() - 100, getY()); // Draw estimated earnings text
+            font.drawString(Integer.toString(priority), getX() - 30, getY()); // Draw priority text
         }
     }
 
@@ -159,16 +144,16 @@ public class Passenger {
      */
     private void moveTowardsTaxi(double taxiX, double taxiY) {
         if (!isPickedUp) {
-            if (x < taxiX) {
-                this.x += WALK_SPEED_X;
-            } else if (x > taxiX) {
-                this.x -= WALK_SPEED_X;
+            if (getX() < taxiX) {
+                setX(getX() + WALK_SPEED_X);
+            } else if (getX() > taxiX) {
+                setX(getX() - WALK_SPEED_X);
             }
 
-            if (y < taxiY) {
-                this.y += WALK_SPEED_Y;
-            } else if (y > taxiY) {
-                this.y -= WALK_SPEED_Y;
+            if (getY() < taxiY) {
+                setY(getY() + WALK_SPEED_Y);
+            } else if (getY() > taxiY) {
+                setY(getY() - WALK_SPEED_Y);
             }
 
             // Check if the passenger can now be picked up by taxi (i.e. coordinates are equal to taxi)
@@ -186,19 +171,19 @@ public class Passenger {
 
             isMovingToFlag = true;
 
-            if (x < finalFlagX) {
-                this.x += WALK_SPEED_X;
-            } else if (x > finalFlagX) {
-                this.x -= WALK_SPEED_X;
+            if (getX() < finalFlagX) {
+                setX(getX() + WALK_SPEED_X);
+            } else if (getX() > finalFlagX) {
+                setX(getX() - WALK_SPEED_X);
             }
 
-            if (y < finalFlagY) {
-                this.y += WALK_SPEED_Y;
-            } else if (y > finalFlagY) {
-                this.y -= WALK_SPEED_Y;
+            if (getY() < finalFlagY) {
+                setY(getY() + WALK_SPEED_Y);
+            } else if (getY() > finalFlagY) {
+                setY(getY() - WALK_SPEED_Y);
             }
 
-            if (this.x == finalFlagX && this.y == finalFlagY) {
+            if (getX() == finalFlagX && getY() == finalFlagY) {
                 this.isDroppedOff = true; // Passenger is dropped off
             }
         }
@@ -208,14 +193,7 @@ public class Passenger {
      * Helper function to calculate distance between passenger and taxi.
      */
     private double calculateDistance(double taxiX, double taxiY) {
-        return Math.sqrt(Math.pow(taxiX - x, 2) + Math.pow(taxiY - y, 2));
-    }
-
-    /**
-     * Moves the passenger down.
-     */
-    private void moveDown() {
-        this.y += SCROLL_SPEED;
+        return Math.sqrt(Math.pow(taxiX - getX(), 2) + Math.pow(taxiY - getY(), 2));
     }
 
     /**
@@ -223,8 +201,8 @@ public class Passenger {
      */
         private void updateWithTaxiMovement(int taxiX, int taxiY) {
         if (isPickedUp && !isMovingToFlag) {
-            this.x = taxiX;
-            this.y = taxiY;
+            setX(taxiX);
+            setY(taxiY);
         }
     }
 
@@ -251,7 +229,7 @@ public class Passenger {
 
         // No longer render the flag ONLY IF taxi has not picked up another passenger before
         // the old passenger arrives to the trip end flag.
-        if (isDroppedOff && (y == flag.getY()) && taxi.isEmpty()) {
+        if (isDroppedOff && (getY() == flag.getY()) && taxi.isEmpty()) {
             deactivate(flag);
         }
     }
@@ -259,9 +237,10 @@ public class Passenger {
     /**
      * Draws the passenger entity.
      */
-    private void draw() {
+    @Override
+    public void draw() {
         if (!isPickedUp || isDroppedOff || isMovingToFlag) {
-            IMAGE.draw(x, y);
+            IMAGE.draw(getX(), getY());
         }
     }
 
@@ -294,14 +273,6 @@ public class Passenger {
      */
     private void deactivate(TripEndFlag flag) {
         flag.deactivate();
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
     }
 
     public int getEndX() {
@@ -342,10 +313,6 @@ public class Passenger {
 
     public boolean isPenaltyImposed() {
         return isPenaltyImposed;
-    }
-
-    public int getRadius() {
-        return RADIUS;
     }
 
     public void setPenalty(double penalty) {

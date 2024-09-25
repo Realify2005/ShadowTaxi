@@ -5,55 +5,34 @@ import java.util.Properties;
 /**
  * Class for the trip end flag entity.
  */
-public class TripEndFlag {
-
-    // Constants
-    private final Image IMAGE;
-    private final double RADIUS;
-    private final int SCROLL_SPEED;
+public class TripEndFlag extends Entity {
 
     // Variables
-    private int x;
-    private int y;
     private boolean isActive;
 
     public TripEndFlag(int startX, int startY, int distanceY, Properties properties) {
-        this.x = startX;
-        this.y = startY - distanceY; // Put end flag at the passenger destination
+        super(startX, startY - distanceY, properties,
+                "gameObjects.tripEndFlag.image", "gameObjects.tripEndFlag.radius");
         this.isActive = false;
-
-        IMAGE = new Image(properties.getProperty("gameObjects.tripEndFlag.image"));
-        RADIUS = Double.parseDouble(properties.getProperty("gameObjects.tripEndFlag.radius"));
-
-        // Scroll speed for trip end flag can be referred to taxi's "scroll speed".
-        SCROLL_SPEED = Integer.parseInt(properties.getProperty("gameObjects.taxi.speedY"));
-    }
-
-    /**
-     * Constantly updates the trip end flag.
-     */
-    public void update(Input input) {
-        if (input.isDown(Keys.UP)) {
-            moveDown();
-        }
-        draw();
     }
 
     /**
      * Move the trip end flag down.
      */
-    private void moveDown() {
+    @Override
+    public void moveDown() {
         if (isActive) {
-            this.y += SCROLL_SPEED;
+            setY(getY() + SCROLL_SPEED);
         }
     }
 
     /**
      * Draws the trip end flag when trip is ongoing.
      */
-    private void draw() {
+    @Override
+    public void draw() {
         if (isActive) {
-            IMAGE.draw(x, y);
+            IMAGE.draw(getX(), getY());
         }
     }
 
@@ -63,18 +42,6 @@ public class TripEndFlag {
 
     public void deactivate() {
         this.isActive = false;
-    }
-
-    public double getRadius() {
-        return RADIUS;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
     }
 
 }
