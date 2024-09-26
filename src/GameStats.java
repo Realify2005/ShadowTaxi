@@ -35,25 +35,25 @@ public class GameStats {
     private double totalScore;
     private int remainingFrames;
 
-    public GameStats(Properties gameProperties, Properties messageProperties) {
+    public GameStats(Properties gameProps, Properties messageProps) {
         this.totalScore = 0;
 
-        TARGET_SCORE = Double.parseDouble(gameProperties.getProperty("gamePlay.target"));
-        MAX_FRAMES = Integer.parseInt(gameProperties.getProperty("gamePlay.maxFrames"));
+        TARGET_SCORE = Double.parseDouble(gameProps.getProperty("gamePlay.target"));
+        MAX_FRAMES = Integer.parseInt(gameProps.getProperty("gamePlay.maxFrames"));
 
-        FONT_PATH = gameProperties.getProperty("font");
-        FONT_SIZE = Integer.parseInt(gameProperties.getProperty("gamePlay.info.fontSize"));
+        FONT_PATH = gameProps.getProperty("font");
+        FONT_SIZE = Integer.parseInt(gameProps.getProperty("gamePlay.info.fontSize"));
 
-        EARNINGS_X = Integer.parseInt(gameProperties.getProperty("gamePlay.earnings.x"));
-        EARNINGS_Y = Integer.parseInt(gameProperties.getProperty("gamePlay.earnings.y"));
-        TARGET_X = Integer.parseInt(gameProperties.getProperty("gamePlay.target.x"));
-        TARGET_Y = Integer.parseInt(gameProperties.getProperty("gamePlay.target.y"));
-        MAX_FRAMES_X = Integer.parseInt(gameProperties.getProperty("gamePlay.maxFrames.x"));
-        MAX_FRAMES_Y = Integer.parseInt(gameProperties.getProperty("gamePlay.maxFrames.y"));
+        EARNINGS_X = Integer.parseInt(gameProps.getProperty("gamePlay.earnings.x"));
+        EARNINGS_Y = Integer.parseInt(gameProps.getProperty("gamePlay.earnings.y"));
+        TARGET_X = Integer.parseInt(gameProps.getProperty("gamePlay.target.x"));
+        TARGET_Y = Integer.parseInt(gameProps.getProperty("gamePlay.target.y"));
+        MAX_FRAMES_X = Integer.parseInt(gameProps.getProperty("gamePlay.maxFrames.x"));
+        MAX_FRAMES_Y = Integer.parseInt(gameProps.getProperty("gamePlay.maxFrames.y"));
 
-        EARNINGS_TEXT = messageProperties.getProperty("gamePlay.earnings");
-        TARGET_TEXT = messageProperties.getProperty("gamePlay.target");
-        REM_FRAMES_TEXT = messageProperties.getProperty("gamePlay.remFrames");
+        EARNINGS_TEXT = messageProps.getProperty("gamePlay.earnings");
+        TARGET_TEXT = messageProps.getProperty("gamePlay.target");
+        REM_FRAMES_TEXT = messageProps.getProperty("gamePlay.remFrames");
 
         CHANGE_IN_FRAME = 1;
 

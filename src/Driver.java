@@ -4,15 +4,12 @@ import java.util.Properties;
 /**
  * Class for the driver entity.
  */
-public class Driver {
-    private final Image IMAGE;
-
+public class Driver extends Entity {
     private final int FONT_SIZE;
     private final String FONT_PATH;
 
     private final int WALK_SPEED_X;
     private final int WALK_SPEED_Y;
-    private final int RADIUS;
     private final int TAXI_GET_IN_RADIUS;
     private final double HEALTH;
 
@@ -21,19 +18,14 @@ public class Driver {
     private final int DRIVER_TEXT_Y;
 
     // Variables
-    private int x;
-    private int y;
     private boolean inTaxi;
 
     public Driver(int x, int y, Properties gameProps, Properties messageProps) {
-        this.x = x;
-        this.y = y;
+        super(x, y, gameProps, "gameObjects.driver.image", "gameObjects.driver.radius");
         this.inTaxi = false;
 
-        IMAGE = new Image(gameProps.getProperty("gameObjects.driver.image"));
         WALK_SPEED_X = Integer.parseInt(gameProps.getProperty("gameObjects.driver.walkSpeedX"));
         WALK_SPEED_Y = Integer.parseInt(gameProps.getProperty("gameObjects.driver.walkSpeedY"));
-        RADIUS = Integer.parseInt(gameProps.getProperty("gameObjects.driver.radius"));
         TAXI_GET_IN_RADIUS = Integer.parseInt(gameProps.getProperty("gameObjects.driver.taxiGetInRadius"));
         HEALTH = Double.parseDouble(gameProps.getProperty("gameObjects.driver.health")) * 100;
 
@@ -65,19 +57,20 @@ public class Driver {
     }
 
     private void moveUp() {
-        this.y -= WALK_SPEED_Y;
+        setY(getY() - WALK_SPEED_Y);
     }
 
-    private void moveDown() {
-        this.y += WALK_SPEED_Y;
+    @Override
+    public void moveDown() {
+        setY(getY() + WALK_SPEED_Y);
     }
 
     private void moveLeft() {
-        this.x -= WALK_SPEED_X;
+        setX(getX() - WALK_SPEED_X);
     }
 
     private void moveRight() {
-        this.x += WALK_SPEED_X;
+        setX(getX() + WALK_SPEED_X);
     }
 
     /**
@@ -85,8 +78,8 @@ public class Driver {
      */
     private void updateWithTaxiMovement(int taxiX, int taxiY) {
         if (inTaxi) {
-            this.x = taxiX;
-            this.y = taxiY;
+            setX(taxiX);
+            setY(taxiY);
         }
     }
 
@@ -95,12 +88,13 @@ public class Driver {
     }
 
     private double getDistanceTo(double targetX, double targetY) {
-        return Math.sqrt(Math.pow((targetX - x), 2) + Math.pow((targetY - y), 2));
+        return Math.sqrt(Math.pow((targetX - getX()), 2) + Math.pow((targetY - getY()), 2));
     }
 
-    private void draw() {
+    @Override
+    public void draw() {
         if (!inTaxi) {
-            IMAGE.draw(x, y);
+            IMAGE.draw(getX(), getY());
         }
         renderHealth();
     }
@@ -112,7 +106,7 @@ public class Driver {
 
     public void ejectFromTaxi() {
         if (inTaxi) {
-            this.x -= 50;
+            setX(getX() - 50);
             this.inTaxi = false;
         }
     }
@@ -122,14 +116,6 @@ public class Driver {
     }
 
     public void enteredTaxi() { this.inTaxi = true; }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
 
     public double getHealth() {
         return HEALTH;

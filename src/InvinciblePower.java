@@ -8,8 +8,8 @@ import java.util.Properties;
 
 public class InvinciblePower extends PowerUp {
 
-    public InvinciblePower(int x, int y, Properties properties) {
-        super(x, y, properties, "gameObjects.invinciblePower.image",
+    public InvinciblePower(int x, int y, Properties gameProps) {
+        super(x, y, gameProps, "gameObjects.invinciblePower.image",
                 "gameObjects.invinciblePower.radius");
     }
 

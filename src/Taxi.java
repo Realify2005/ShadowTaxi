@@ -16,14 +16,14 @@
 
         private final Gameplay GAMEPLAY;
 
-        public Taxi(int x, int y, Gameplay gameplay, Properties properties) {
-            super(x, y, properties, "gameObjects.taxi.image", "gameObjects.taxi.radius");
+        public Taxi(int x, int y, Gameplay gameplay, Properties gameProps) {
+            super(x, y, gameProps, "gameObjects.taxi.image", "gameObjects.taxi.radius");
             this.isTaxiMoved = false;
             this.hasDriver = false;
             this.currentPassenger = null;
             this.GAMEPLAY = gameplay;
 
-            SPEED_X = Integer.parseInt(properties.getProperty("gameObjects.taxi.speedX"));
+            SPEED_X = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedX"));
         }
 
         /**

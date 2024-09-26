@@ -6,8 +6,8 @@ import java.util.Properties;
 
 public class Coin extends PowerUp {
 
-    public Coin(int x, int y, Properties properties) {
-        super(x, y, properties, "gameObjects.coin.image", "gameObjects.coin.radius");
+    public Coin(int x, int y, Properties gameProps) {
+        super(x, y, gameProps, "gameObjects.coin.image", "gameObjects.coin.radius");
     }
 
     /***

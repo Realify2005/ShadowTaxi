@@ -9,8 +9,8 @@ public abstract class PowerUp extends Entity {
 
     private boolean isTaken;
 
-    public PowerUp(int x, int y, Properties properties, String imageProperty, String radiusProperty) {
-        super(x, y, properties, imageProperty, radiusProperty);
+    public PowerUp(int x, int y, Properties gameProps, String imageProperty, String radiusProperty) {
+        super(x, y, gameProps, imageProperty, radiusProperty);
         this.isTaken = false;
     }
 

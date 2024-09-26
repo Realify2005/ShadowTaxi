@@ -1,5 +1,4 @@
 import bagel.*;
-import bagel.Image;
 import java.util.Properties;
 
 
@@ -13,13 +12,13 @@ public abstract class Entity implements Drawable, Scrollable {
     private int x;
     private int y;
 
-    public Entity(int x, int y, Properties properties, String imageProperty, String radiusProperty) {
+    public Entity(int x, int y, Properties gameProps, String imageProperty, String radiusProperty) {
         this.x = x;
         this.y = y;
 
-        IMAGE = new Image(properties.getProperty(imageProperty));
-        RADIUS = Double.parseDouble(properties.getProperty(radiusProperty));
-        SCROLL_SPEED = Integer.parseInt(properties.getProperty("gameObjects.taxi.speedY"));
+        IMAGE = new Image(gameProps.getProperty(imageProperty));
+        RADIUS = Double.parseDouble(gameProps.getProperty(radiusProperty));
+        SCROLL_SPEED = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedY"));
     }
 
     /**

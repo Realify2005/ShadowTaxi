@@ -10,8 +10,8 @@ public class TripEndFlag extends Entity {
     // Variables
     private boolean isActive;
 
-    public TripEndFlag(int startX, int startY, int distanceY, Properties properties) {
-        super(startX, startY - distanceY, properties,
+    public TripEndFlag(int startX, int startY, int distanceY, Properties gameProps) {
+        super(startX, startY - distanceY, gameProps,
                 "gameObjects.tripEndFlag.image", "gameObjects.tripEndFlag.radius");
         this.isActive = false;
     }

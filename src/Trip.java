@@ -20,7 +20,7 @@ public class Trip {
     private double penalty;
 
     public Trip(Taxi taxi, Passenger passenger, TripEndFlag tripEndFlag,
-                PowerUpState powerUpState, GameStats gameStats, Properties properties) {
+                PowerUpState powerUpState, GameStats gameStats, Properties gameProps) {
         this.TAXI = taxi;
         this.PASSENGER = passenger;
         this.TRIP_END_FLAG = tripEndFlag;
@@ -30,7 +30,7 @@ public class Trip {
         this.POWER_UP_STATE = powerUpState;
         this.GAME_STATS = gameStats;
 
-        PENALTY_RATE = Double.parseDouble(properties.getProperty("trip.penalty.perY"));
+        PENALTY_RATE = Double.parseDouble(gameProps.getProperty("trip.penalty.perY"));
     }
 
     /**

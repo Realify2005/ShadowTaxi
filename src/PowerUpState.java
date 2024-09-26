@@ -29,18 +29,18 @@ public class PowerUpState {
 
     private final Font FONT;
 
-    public PowerUpState(Properties properties) {
+    public PowerUpState(Properties gameProps) {
         this.isCoinActivated = false;
         this.isInvincibleActivated = false;
 
-        COIN_MAX_FRAMES = Integer.parseInt(properties.getProperty("gameObjects.coin.maxFrames"));
-        GAMEPLAY_COIN_X = Integer.parseInt(properties.getProperty("gameplay.coin.x"));
-        GAMEPLAY_COIN_Y = Integer.parseInt(properties.getProperty("gameplay.coin.y"));
+        COIN_MAX_FRAMES = Integer.parseInt(gameProps.getProperty("gameObjects.coin.maxFrames"));
+        GAMEPLAY_COIN_X = Integer.parseInt(gameProps.getProperty("gameplay.coin.x"));
+        GAMEPLAY_COIN_Y = Integer.parseInt(gameProps.getProperty("gameplay.coin.y"));
 
-        INVINCIBLE_MAX_FRAMES = Integer.parseInt(properties.getProperty("gameObjects.invinciblePower.maxFrames"));
+        INVINCIBLE_MAX_FRAMES = Integer.parseInt(gameProps.getProperty("gameObjects.invinciblePower.maxFrames"));
 
-        FONT_PATH = properties.getProperty("font");
-        FONT_SIZE = Integer.parseInt(properties.getProperty("gamePlay.info.fontSize"));
+        FONT_PATH = gameProps.getProperty("font");
+        FONT_SIZE = Integer.parseInt(gameProps.getProperty("gamePlay.info.fontSize"));
 
         INCREASE_PER_FRAME = 1;
         INITIAL_FRAME_COUNT = 0;
