@@ -1,5 +1,7 @@
 import bagel.Font;
 import bagel.*;
+
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -19,6 +21,11 @@ public class Gameplay {
     private final PowerUpState POWER_UP_STATE;
     private final GameStats GAME_STATS;
 
+    private ArrayList<Car> cars;
+    private ArrayList<Fireball> fireballs;
+    private final int OTHER_CAR_SPAWN_RATE = 200;
+    private final int ENEMY_CAR_SPAWN_RATE = 400;
+
     // Full list of passengers.
     private ArrayList<Passenger> passengers;
 
@@ -34,6 +41,12 @@ public class Gameplay {
     private final String EXPECTED_EARNINGS_TEXT;
     private final String PRIORITY_TEXT;
     private final String PENALTY_TEXT;
+
+    private final String PASSENGER_TEXT;
+    private final int PASSENGER_TEXT_X;
+    private final int PASSENGER_TEXT_Y;
+
+    private double passengerHealth;
 
     public Gameplay(TripEndFlag tripEndFlag, PowerUpState coinState,
                     GameStats gameStats, Properties gameProps, Properties messageProps) {
@@ -57,6 +70,18 @@ public class Gameplay {
         this.EXPECTED_EARNINGS_TEXT = MESSAGE_PROPS.getProperty("gamePlay.trip.expectedEarning");
         this.PRIORITY_TEXT = MESSAGE_PROPS.getProperty("gamePlay.trip.priority");
         this.PENALTY_TEXT = MESSAGE_PROPS.getProperty("gamePlay.trip.penalty");
+
+        PASSENGER_TEXT = messageProps.getProperty("gamePlay.passengerHealth");
+        PASSENGER_TEXT_X = Integer.parseInt(gameProps.getProperty("gamePlay.passengerHealth.x"));
+        PASSENGER_TEXT_Y = Integer.parseInt(gameProps.getProperty("gamePlay.passengerHealth.y"));
+
+        int PROPS_TO_GAME_MULTIPLIER = 100;
+        this.passengerHealth = Double.parseDouble(
+                gameProps.getProperty("gameObjects.passenger.health")
+        ) * PROPS_TO_GAME_MULTIPLIER;
+
+        this.cars = new ArrayList<>();
+        this.fireballs = new ArrayList<>();
     }
 
     /**
@@ -108,6 +133,24 @@ public class Gameplay {
         }
 
         driver.update(input, taxi);
+
+        for (Car car : cars) {
+            car.update();
+        }
+
+        for (Fireball fireball : fireballs) {
+            fireball.update();
+        }
+
+        if (MiscUtils.canSpawn(OTHER_CAR_SPAWN_RATE)) {
+            cars.add(new OtherCar(GAME_PROPS));
+        }
+
+        if (MiscUtils.canSpawn(ENEMY_CAR_SPAWN_RATE)) {
+            cars.add(new EnemyCar(GAME_PROPS, fireballs));
+        }
+
+        renderPassengerHealth();
     }
 
     /**
@@ -173,5 +216,15 @@ public class Gameplay {
                 passenger.getDistanceY(), GAME_PROPS);
         trip = new Trip(taxi, passenger, tripEndFlag, POWER_UP_STATE, GAME_STATS, GAME_PROPS);
         trip.beginTrip();
+    }
+
+    public void resetMovingObjects() {
+        cars = new ArrayList<>();
+        fireballs = new ArrayList<>();
+    }
+
+    private void renderPassengerHealth() {
+        Font font = new Font(FONT_PATH, FONT_SIZE);
+        font.drawString( PASSENGER_TEXT + passengerHealth, PASSENGER_TEXT_X, PASSENGER_TEXT_Y);
     }
 }

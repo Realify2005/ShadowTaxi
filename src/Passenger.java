@@ -20,6 +20,9 @@ public class Passenger extends Entity {
     private final int WALK_SPEED_X;
     private final int WALK_SPEED_Y;
 
+    private final int COLLISION_RADIUS;
+    private final double HEALTH;
+
     // Variables
     private int originalPriority;
     private int priority;
@@ -36,6 +39,8 @@ public class Passenger extends Entity {
     private double earnings;
     private boolean isEarningsAdded;
     private boolean isPenaltyImposed;
+
+    private double currentHealth;
 
     private Taxi taxi;
     private PowerUpState powerUpState;
@@ -70,6 +75,12 @@ public class Passenger extends Entity {
         PRIORITY_RATE_1 = Integer.parseInt(gameProps.getProperty("trip.rate.priority1"));
         PRIORITY_RATE_2 = Integer.parseInt(gameProps.getProperty("trip.rate.priority2"));
         PRIORITY_RATE_3 = Integer.parseInt(gameProps.getProperty("trip.rate.priority3"));
+
+        int PROPS_TO_GAME_MULTIPLIER = 100;
+        COLLISION_RADIUS = Integer.parseInt(gameProps.getProperty("gameObjects.passenger.radius"));
+        HEALTH = Double.parseDouble(gameProps.getProperty("gameObjects.passenger.health")) * PROPS_TO_GAME_MULTIPLIER;
+
+        this.currentHealth = HEALTH;
 
         this.earnings = calculateEarnings();
     }

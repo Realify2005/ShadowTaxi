@@ -19,15 +19,17 @@ public class Driver extends Entity {
 
     // Variables
     private boolean inTaxi;
+    private double currentHealth;
 
     public Driver(int x, int y, Properties gameProps, Properties messageProps) {
         super(x, y, gameProps, "gameObjects.driver.image", "gameObjects.driver.radius");
         this.inTaxi = false;
 
+        int PROPS_TO_GAME_MULTIPLIER = 100;
         WALK_SPEED_X = Integer.parseInt(gameProps.getProperty("gameObjects.driver.walkSpeedX"));
         WALK_SPEED_Y = Integer.parseInt(gameProps.getProperty("gameObjects.driver.walkSpeedY"));
         TAXI_GET_IN_RADIUS = Integer.parseInt(gameProps.getProperty("gameObjects.driver.taxiGetInRadius"));
-        HEALTH = Double.parseDouble(gameProps.getProperty("gameObjects.driver.health")) * 100;
+        HEALTH = Double.parseDouble(gameProps.getProperty("gameObjects.driver.health")) * PROPS_TO_GAME_MULTIPLIER;
 
         FONT_SIZE = Integer.parseInt(gameProps.getProperty("gamePlay.info.fontSize"));
         FONT_PATH = gameProps.getProperty("font");
@@ -35,6 +37,8 @@ public class Driver extends Entity {
         DRIVER_TEXT = messageProps.getProperty("gamePlay.driverHealth");
         DRIVER_TEXT_X = Integer.parseInt(gameProps.getProperty("gamePlay.driverHealth.x"));
         DRIVER_TEXT_Y = Integer.parseInt(gameProps.getProperty("gamePlay.driverHealth.y"));
+
+        this.currentHealth = HEALTH;
     }
 
     public void update(Input input, Taxi taxi) {
@@ -54,6 +58,7 @@ public class Driver extends Entity {
             }
         }
         updateWithTaxiMovement(taxi.getX(), taxi.getY());
+        renderHealth();
     }
 
     private void moveUp() {
@@ -96,12 +101,11 @@ public class Driver extends Entity {
         if (!inTaxi) {
             IMAGE.draw(getX(), getY());
         }
-        renderHealth();
     }
 
     private void renderHealth() {
         Font font = new Font(FONT_PATH, FONT_SIZE);
-        font.drawString( DRIVER_TEXT + HEALTH, DRIVER_TEXT_X, DRIVER_TEXT_Y);
+        font.drawString( DRIVER_TEXT + currentHealth, DRIVER_TEXT_X, DRIVER_TEXT_Y);
     }
 
     public void ejectFromTaxi() {

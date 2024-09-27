@@ -138,7 +138,7 @@ public class OngoingGameScreen extends Screen {
                 case "TAXI":
                     int taxiX = Integer.parseInt(objectData[1]);
                     int taxiY = Integer.parseInt(objectData[2]);
-                    taxi = new Taxi(taxiX, taxiY, gameplay, GAME_PROPS);
+                    taxi = new Taxi(taxiX, taxiY, gameplay, GAME_PROPS, MESSAGE_PROPS);
                     break;
                 case "DRIVER":
                     int driverX = Integer.parseInt(objectData[1]);
@@ -205,6 +205,8 @@ public class OngoingGameScreen extends Screen {
         resetBackground();
         loadGameObjects(GAME_PROPS.getProperty("gamePlay.objectsFile"));
         currentFrame = 0;
+
+        gameplay.resetMovingObjects();
     }
 
     /**
