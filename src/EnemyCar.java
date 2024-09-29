@@ -27,7 +27,8 @@ public class EnemyCar extends Car {
     }
 
     private void shootFireball() {
-        Fireball newFireball = new Fireball(GAME_PROPS, getX(), getY());
-        fireballs.add(newFireball);
+        if (getCurrentHealth() > 0) {
+            fireballs.add(new Fireball(GAME_PROPS, getX(), getY(), this));
+        }
     }
 }

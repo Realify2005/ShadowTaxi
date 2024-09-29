@@ -19,6 +19,7 @@ public class OngoingGameScreen extends Screen {
     private Driver driver;
     private ArrayList<Passenger> passengers;
     private ArrayList<PowerUp> powerUps;
+    private ArrayList<TemporaryEffect> temporaryEffects;
     private TripEndFlag tripEndFlag;
     private PowerUpState powerUpState;
     private GameStats gameStats;
@@ -48,6 +49,7 @@ public class OngoingGameScreen extends Screen {
         loadWeatherInfo(gameProps.getProperty("gamePlay.weatherFile"));
 
         currentFrame = 0;
+        temporaryEffects = new ArrayList<>();
     }
 
     /**
@@ -104,14 +106,6 @@ public class OngoingGameScreen extends Screen {
 
         }
 
-        for (PowerUp powerUp : powerUps) {
-            powerUp.update(input);
-            if (taxi.collidedWith(powerUp) && !powerUp.isTaken()) {
-                powerUpState.activatePowerUp(powerUp);
-            }
-            // If driver collided with coin/invincible power too...
-        }
-
         for (Passenger passenger : passengers) {
             passenger.update(input, isRaining);
         }
@@ -119,7 +113,6 @@ public class OngoingGameScreen extends Screen {
         powerUpState.update();
         gameStats.update();
         gameplay.update(input);
-        taxi.update(input);
     }
 
     /**
@@ -153,7 +146,7 @@ public class OngoingGameScreen extends Screen {
                     int distanceY = Integer.parseInt(objectData[5]);
                     int hasUmbrella = Integer.parseInt(objectData[6]);
                     passengers.add(new Passenger(passengerX, passengerY, priority, endX, distanceY, hasUmbrella,
-                            taxi, powerUpState, GAME_PROPS, MESSAGE_PROPS));
+                            powerUpState, GAME_PROPS, MESSAGE_PROPS));
                     break;
                 case "COIN":
                     int coinX = Integer.parseInt(objectData[1]);
@@ -169,6 +162,12 @@ public class OngoingGameScreen extends Screen {
         gameplay.initialiseTaxi(taxi);
         gameplay.initialiseDriver(driver);
         gameplay.initialisePassengers(passengers);
+        gameplay.initialisePowerUps(powerUps);
+
+        for (Passenger passenger : passengers) {
+            passenger.initialiseTaxi(taxi);
+            passenger.initialiseDriver(driver);
+        }
     }
 
     private void loadWeatherInfo(String filePath) {
@@ -206,14 +205,14 @@ public class OngoingGameScreen extends Screen {
         loadGameObjects(GAME_PROPS.getProperty("gamePlay.objectsFile"));
         currentFrame = 0;
 
-        gameplay.resetMovingObjects();
+        gameplay.resetObjects();
     }
 
     /**
      * Checks if the game has ended.
      */
     public boolean hasGameEnded() {
-        return ranOutOfFrames() || winningScoreReached() || taxiLeftScreenWithoutDriver();
+        return ranOutOfFrames() || winningScoreReached() || taxiLeftScreenWithoutDriver() || isDriverDead();
     }
 
     private boolean ranOutOfFrames() {
@@ -225,7 +224,11 @@ public class OngoingGameScreen extends Screen {
     }
 
     private boolean taxiLeftScreenWithoutDriver() {
-        return (taxi.getY() >= WINDOW_MAX_HEIGHT) && !taxi.hasDriver();
+        return (gameplay.getTaxi().getY() >= WINDOW_MAX_HEIGHT) && !gameplay.getTaxi().hasDriver();
+    }
+
+    private boolean isDriverDead() {
+        return driver.getCurrentHealth() <= 0;
     }
 
     /**

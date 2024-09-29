@@ -24,6 +24,7 @@ public abstract class TemporaryEffect implements Drawable, Scrollable {
         updateFramesRemaining();
     }
 
+    @Override
     public void moveDown() {
         y += SCROLL_SPEED;
     }
@@ -34,6 +35,7 @@ public abstract class TemporaryEffect implements Drawable, Scrollable {
         }
     }
 
+    @Override
     public void draw() {
         if (framesRemaining > 0) {
             IMAGE.draw(x, y);

@@ -1,9 +1,10 @@
 import bagel.Font;
 import bagel.*;
-
-import java.sql.Array;
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Class that handles the gameplay logic
@@ -23,6 +24,10 @@ public class Gameplay {
 
     private ArrayList<Car> cars;
     private ArrayList<Fireball> fireballs;
+    private ArrayList<TemporaryEffect> temporaryEffects;
+    private ArrayList<Taxi> damagedTaxis;
+    private ArrayList<PowerUp> powerUps;
+    private ArrayList<Fireball> fireballsToRemove;
     private final int OTHER_CAR_SPAWN_RATE = 200;
     private final int ENEMY_CAR_SPAWN_RATE = 400;
 
@@ -46,13 +51,21 @@ public class Gameplay {
     private final int PASSENGER_TEXT_X;
     private final int PASSENGER_TEXT_Y;
 
-    private double passengerHealth;
+    private final int ROAD_LANE_CENTER_1;
+    private final int ROAD_LANE_CENTER_3;
+    private final int TAXI_NEXT_SPAWN_MIN_Y;
+    private final int TAXI_NEXT_SPAWN_MAX_Y;
 
-    public Gameplay(TripEndFlag tripEndFlag, PowerUpState coinState,
+    private Set<Car[]> collidedPairs = new HashSet<>();
+
+    private double passengerHealth;
+    private double lowestPassengerHealth;
+
+    public Gameplay(TripEndFlag tripEndFlag, PowerUpState powerUpState,
                     GameStats gameStats, Properties gameProps, Properties messageProps) {
         this.trip = null;
         this.tripEndFlag = tripEndFlag;
-        this.POWER_UP_STATE = coinState;
+        this.POWER_UP_STATE = powerUpState;
         this.GAME_STATS = gameStats;
 
         this.GAME_PROPS = gameProps;
@@ -75,13 +88,23 @@ public class Gameplay {
         PASSENGER_TEXT_X = Integer.parseInt(gameProps.getProperty("gamePlay.passengerHealth.x"));
         PASSENGER_TEXT_Y = Integer.parseInt(gameProps.getProperty("gamePlay.passengerHealth.y"));
 
+        TAXI_NEXT_SPAWN_MIN_Y = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.nextSpawnMinY"));
+        TAXI_NEXT_SPAWN_MAX_Y = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.nextSpawnMaxY"));
+
+        ROAD_LANE_CENTER_1 = Integer.parseInt(gameProps.getProperty("roadLaneCenter1"));
+        ROAD_LANE_CENTER_3 = Integer.parseInt(gameProps.getProperty("roadLaneCenter3"));
+
         int PROPS_TO_GAME_MULTIPLIER = 100;
         this.passengerHealth = Double.parseDouble(
                 gameProps.getProperty("gameObjects.passenger.health")
         ) * PROPS_TO_GAME_MULTIPLIER;
+        this.lowestPassengerHealth = this.passengerHealth; // Initially set to default health for passenger entity,
 
         this.cars = new ArrayList<>();
         this.fireballs = new ArrayList<>();
+        this.temporaryEffects = new ArrayList<>();
+        this.damagedTaxis = new ArrayList<>();
+        this.fireballsToRemove = new ArrayList<>();
     }
 
     /**
@@ -109,6 +132,7 @@ public class Gameplay {
      */
     public void update(Input input) {
         renderTripInfo();
+        taxi.update(input);
 
         if (tripEndFlag != null) {
             tripEndFlag.update(input);
@@ -119,6 +143,14 @@ public class Gameplay {
             // make sure that the passenger arrives to its final destination (i.e. flag).
             if (passenger.isMovingToFlag()) {
                 passenger.dropOff(tripEndFlag);
+            }
+            // means that passenger is ejected, so need to put it back to taxi
+            if (passenger.isPickedUp() && !passenger.isInTaxi()) {
+                taxi.setCurrentPassenger(passenger);
+            }
+
+            if (passenger.getCurrentHealth() < this.passengerHealth) {
+                this.lowestPassengerHealth = passenger.getCurrentHealth();
             }
         }
 
@@ -135,11 +167,89 @@ public class Gameplay {
         driver.update(input, taxi);
 
         for (Car car : cars) {
+            if (taxi.handleCollision(car)) {
+                temporaryEffects.add(new Smoke(taxi.getX(), taxi.getY(), GAME_PROPS));
+            }
             car.update();
+            if (car.getCurrentHealth() <= 0 && !car.isFireEffectAdded()) {
+                temporaryEffects.add(new Fire(car.getX(), car.getY(), GAME_PROPS));
+                car.fireEffectWasAdded();
+            }
+            if (driver.handleCollision(car)) {
+                temporaryEffects.add(new Blood(driver.getX(), driver.getY(), GAME_PROPS));
+            }
+            for (Passenger passenger : passengers) {
+                if (passenger.handleCollision(car)) {
+                    temporaryEffects.add(new Blood(passenger.getX(), passenger.getY(), GAME_PROPS));
+                }
+            }
+        }
+
+        collidedPairs.clear();
+        for (int i = 0; i < cars.size(); i++) {
+            Car car1 = cars.get(i);
+            for (int j = i + 1; j < cars.size(); j++) {
+                Car car2 = cars.get(j);
+
+                Car[] carPair = {car1, car2};
+                if (!collidedPairs.contains(carPair)) {
+                    if (car1.handleCollision(car2)) {
+                        temporaryEffects.add(new Smoke(car1.getX(), car1.getY(), GAME_PROPS));
+                        temporaryEffects.add(new Smoke(car2.getX(), car2.getY(), GAME_PROPS));
+                        collidedPairs.add(carPair);
+                    }
+                }
+            }
         }
 
         for (Fireball fireball : fireballs) {
             fireball.update();
+            double fireballDamage = fireball.getDamage();
+
+            for (Passenger passenger : passengers) {
+                if (fireball.collidesWith(passenger.getX(), passenger.getY(), passenger.getRadius())) {
+                    passenger.receiveDamage(fireballDamage);
+                    fireball.wasCollided();
+                    break;
+                }
+            }
+
+            if (!fireball.isCollided()) {
+                for (Car car : cars) {
+                    if (car != fireball.getSpawnedBy() && fireball.collidesWith(car.getX(), car.getY(), car.getRadius())) {
+                        car.receiveDamage(fireballDamage);
+                        fireball.wasCollided();
+                        break;
+                    }
+                }
+            }
+
+            if (!fireball.isCollided()) {
+                if (fireball.collidesWith(driver.getX(), driver.getY(), driver.getRadius())) {
+                    driver.receiveDamage(fireballDamage);
+                    fireball.wasCollided();
+                }
+            }
+
+            if (!fireball.isCollided()) {
+                if (fireball.collidesWith(taxi.getX(), taxi.getY(), taxi.getRadius())) {
+                    taxi.receiveDamage(fireballDamage);
+                    fireball.wasCollided();
+                }
+            }
+
+            if (fireball.isCollided()) {
+                fireballsToRemove.add(fireball);
+            }
+        }
+        fireballs.removeAll(fireballsToRemove);
+
+        for (TemporaryEffect temporaryEffect : temporaryEffects) {
+            temporaryEffect.update();
+        }
+
+        for (Taxi damagedTaxi : damagedTaxis) {
+            damagedTaxi.update(input);
         }
 
         if (MiscUtils.canSpawn(OTHER_CAR_SPAWN_RATE)) {
@@ -148,6 +258,36 @@ public class Gameplay {
 
         if (MiscUtils.canSpawn(ENEMY_CAR_SPAWN_RATE)) {
             cars.add(new EnemyCar(GAME_PROPS, fireballs));
+        }
+
+        if (taxi.getCurrentHealth() <= 0) {
+            damagedTaxis.add(taxi);
+            temporaryEffects.add(new Fire(taxi.getX(), taxi.getY(), GAME_PROPS));
+            if (taxi.getCurrentPassenger() != null && !taxi.isPassengerMovingToFlag()) {
+                taxi.getCurrentPassenger().eject();
+            }
+            if (taxi.hasDriver()) {
+                driver.eject();
+                taxi.driverEjected();
+            }
+            taxi = new Taxi(getTaxiRandomSpawnX(), getTaxiRandomSpawnY(), this, GAME_PROPS, MESSAGE_PROPS);
+            if (trip != null) {
+                trip.setTaxi(taxi);
+            }
+        }
+
+        for (PowerUp powerUp : powerUps) {
+            powerUp.update(input);
+            if (taxi.collidedWith(powerUp) && !powerUp.isTaken()) {
+                POWER_UP_STATE.activatePowerUp(powerUp);
+            }
+            // If driver collided with coin/invincible power too...
+        }
+
+        if (trip != null) {
+            this.passengerHealth = trip.getPassenger().getCurrentHealth();
+        } else {
+            this.passengerHealth = this.lowestPassengerHealth;
         }
 
         renderPassengerHealth();
@@ -208,6 +348,10 @@ public class Gameplay {
         this.passengers = passengers;
     }
 
+    public void initialisePowerUps(ArrayList<PowerUp> powerUps) {
+        this.powerUps = powerUps;
+    }
+
     /**
      * Logic to start trip if a passenger has successfully entered the taxi
      */
@@ -218,13 +362,27 @@ public class Gameplay {
         trip.beginTrip();
     }
 
-    public void resetMovingObjects() {
+    public void resetObjects() {
         cars = new ArrayList<>();
         fireballs = new ArrayList<>();
+        damagedTaxis = new ArrayList<>();
+        temporaryEffects = new ArrayList<>();
     }
 
     private void renderPassengerHealth() {
         Font font = new Font(FONT_PATH, FONT_SIZE);
         font.drawString( PASSENGER_TEXT + passengerHealth, PASSENGER_TEXT_X, PASSENGER_TEXT_Y);
+    }
+
+    private int getTaxiRandomSpawnX() {
+        return MiscUtils.selectAValue(ROAD_LANE_CENTER_1, ROAD_LANE_CENTER_3);
+    }
+
+    private int getTaxiRandomSpawnY() {
+        return MiscUtils.getRandomInt(TAXI_NEXT_SPAWN_MIN_Y, TAXI_NEXT_SPAWN_MAX_Y);
+    }
+
+    public Taxi getTaxi() {
+        return taxi;
     }
 }
