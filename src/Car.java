@@ -1,7 +1,7 @@
 import bagel.Image;
 import java.util.Properties;
 
-public abstract class Car implements Drawable {
+public abstract class Car implements Drawable, Damageable {
     protected final Image IMAGE;
     protected final double RADIUS;
     protected final double HEALTH;
@@ -11,16 +11,25 @@ public abstract class Car implements Drawable {
 
     protected final int CAR_Y_1 = -50;
     protected final int CAR_Y_2 = 768;
+    protected final int SEPARATE_Y = 1;
 
     protected final int ROAD_LANE_CENTER_1;
     protected final int ROAD_LANE_CENTER_2;
     protected final int ROAD_LANE_CENTER_3;
+
+    private int initialCollisionTimeoutFramesRemaining;
+    private int collisionTimeoutFramesRemaining;
+    private boolean fireEffectAdded;
 
     // Variables for position and state
     private double currentHealth;
     private int currentSpeed;
     private int x;
     private int y;
+    private Damageable collidingOtherObject;
+
+    private final int COLLISION_TIMEOUT_FRAMES_TOTAL = 200;
+    private final int COLLISION_TIMEOUT_FRAMES_INITIAL = 10;
 
     public Car(Properties gameProps, String imagePath, String radiusProperty, String healthProperty,
                String damageProperty, String minSpeedYProperty, String maxSpeedYProperty) {
@@ -41,6 +50,7 @@ public abstract class Car implements Drawable {
         this.currentSpeed = getRandomSpeed();
         this.x = getRandomPositionX();
         this.y = getRandomPositionY();
+        this.fireEffectAdded = false;
     }
 
     public double getDistanceTo(double otherX, double otherY) {
@@ -62,35 +72,93 @@ public abstract class Car implements Drawable {
     }
 
     public void update() {
+        updateCollisionTimeoutFramesRemaining();
+
+        // Check if still in collision timeout
+        if (collisionTimeoutFramesRemaining > 0) {
+            separateFromObject(collidingOtherObject);
+        } else {
+            moveUp();
+        }
         draw();
-        moveUp();
     }
 
     private void moveUp() {
         this.y -= currentSpeed;
     }
 
+    @Override
     public void draw() {
-        IMAGE.draw(x, y);
+        if (currentHealth > 0) {
+            IMAGE.draw(x, y);
+        }
     }
 
-    // Method to handle receiving damage
-    public void receiveDamage(int damage) {
-
+    @Override
+    public void receiveDamage(double damage) {
+        this.currentHealth -= damage;
+        if (this.currentHealth < 0) {
+            this.currentHealth = 0;
+        }
     }
 
-    // Method to update collision timeout frames
+    @Override
     public void updateCollisionTimeoutFramesRemaining() {
-
+        if (initialCollisionTimeoutFramesRemaining > 0) {
+            initialCollisionTimeoutFramesRemaining--;
+        }
+        if (collisionTimeoutFramesRemaining > 0) {
+            collisionTimeoutFramesRemaining--;
+        }
     }
 
-    // Separate the car from another object to avoid overlap
-    public void separateFromObject(double otherX, double otherY) {
+    @Override
+    public void separateFromObject(Damageable other) {
+        if (initialCollisionTimeoutFramesRemaining > 0 && initialCollisionTimeoutFramesRemaining <= 10) {
+            int otherY = other.getY();
+            int thisY = this.getY();
 
+            if (thisY < otherY) {
+                this.setY(thisY - SEPARATE_Y);
+            } else {
+                this.setY(thisY + SEPARATE_Y);
+            }
+        }
     }
 
-    public double getCurrentHealth() {
-        return currentHealth;
+    public void receiveCollision(Damageable other) {
+
+        double distance = getDistanceTo(other.getX(), other.getY());
+        double collisionRange = this.getRadius() + other.getRadius();
+
+        if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
+            this.receiveDamage(other.getDamage());
+            collidingOtherObject = other;
+            collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+            initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+        }
+    }
+
+    @Override
+    public boolean handleCollision(Car other) {
+
+        if (other.getCurrentHealth() > 0) {
+            double distance = getDistanceTo(other.getX(), other.getY());
+            double collisionRange = this.getRadius() + other.getRadius();
+
+            if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
+                this.receiveDamage(other.getDamage());
+
+                collidingOtherObject = other;
+                other.receiveCollision(this);
+
+                collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+                initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void setCurrentHealth(int currentHealth) {
@@ -121,4 +189,26 @@ public abstract class Car implements Drawable {
         this.y = y;
     }
 
+    @Override
+    public double getDamage() {
+        return DAMAGE;
+    }
+
+    @Override
+    public double getRadius() {
+        return RADIUS;
+    }
+
+    @Override
+    public double getCurrentHealth() {
+        return currentHealth;
+    }
+
+    public void fireEffectWasAdded() {
+        fireEffectAdded = true;
+    }
+
+    public boolean isFireEffectAdded() {
+        return fireEffectAdded;
+    }
 }

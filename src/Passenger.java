@@ -5,7 +5,7 @@ import bagel.Font;
 /**
  * Class for the passenger entity.
  */
-public class Passenger extends Entity {
+public class Passenger extends Entity implements Damageable, Ejectable {
     // Constants related to font for rendering.
     private final int FONT_SIZE;
     private final String FONT_PATH;
@@ -23,6 +23,11 @@ public class Passenger extends Entity {
     private final int COLLISION_RADIUS;
     private final double HEALTH;
 
+    private final int EJECT_X = 100;
+    private final int SEPARATE_X = 2;
+    private final int SEPARATE_Y = 2;
+    private final int DAMAGE = 0;
+
     // Variables
     private int originalPriority;
     private int priority;
@@ -36,17 +41,23 @@ public class Passenger extends Entity {
     private boolean isMovingToFlag;
     private boolean isDroppedOff;
     private boolean isPriorityDecreased;
+    private boolean isInTaxi;
     private double earnings;
     private boolean isEarningsAdded;
     private boolean isPenaltyImposed;
 
     private double currentHealth;
 
+    private Car collidingCar;
+    private int initialCollisionTimeoutFramesRemaining;
+    private int collisionTimeoutFramesRemaining;
+
     private Taxi taxi;
     private PowerUpState powerUpState;
+    private Driver driver;
 
     public Passenger(int x, int y, int priority, int endX, int distanceY, int hasUmbrella,
-                     Taxi taxi, PowerUpState powerUpState, Properties gameProps, Properties messageProps) {
+                     PowerUpState powerUpState, Properties gameProps, Properties messageProps) {
         super(x, y, gameProps,"gameObjects.passenger.image",
                 "gameObjects.passenger.taxiDetectRadius");
         this.originalPriority = this.priority = priority;
@@ -56,11 +67,11 @@ public class Passenger extends Entity {
         this.finalFlagY = -1; // has not been set
         this.hasUmbrella = (hasUmbrella != 0); // Convert int from world file to boolean
         this.penalty = 0;
-        this.taxi = taxi;
         this.powerUpState = powerUpState;
         this.isPickedUp = false;
         this.isDroppedOff = false;
         this.isMovingToFlag = false;
+        this.isInTaxi = false;
         this.isPriorityDecreased = false;
         this.isEarningsAdded = false;
         this.isPenaltyImposed = false;
@@ -85,6 +96,67 @@ public class Passenger extends Entity {
         this.earnings = calculateEarnings();
     }
 
+    @Override
+    public void receiveDamage(double damage) {
+        this.currentHealth -= damage;
+        if (this.currentHealth < 0) {
+            this.currentHealth = 0;
+        }
+    }
+
+    @Override
+    public void updateCollisionTimeoutFramesRemaining() {
+        if (initialCollisionTimeoutFramesRemaining > 0) {
+            initialCollisionTimeoutFramesRemaining--;
+        }
+        if (collisionTimeoutFramesRemaining > 0) {
+            collisionTimeoutFramesRemaining--;
+        }
+    }
+
+    @Override
+    public void separateFromObject(Damageable other) {
+        if (initialCollisionTimeoutFramesRemaining > 0 && initialCollisionTimeoutFramesRemaining <= 10) {
+            int otherX = other.getX();
+            int otherY = other.getY();
+            int thisX = this.getX();
+            int thisY = this.getY();
+
+            if (thisX < otherX) {
+                this.setX(thisX - SEPARATE_X);
+            } else {
+                this.setX(thisX + SEPARATE_X);
+            }
+            if (thisY < otherY) {
+                this.setY(thisY - SEPARATE_Y);
+            } else {
+                this.setY(thisY + SEPARATE_Y);
+            }
+        }
+    }
+
+    @Override
+    public boolean handleCollision(Car other) {
+
+        if (other.getCurrentHealth() > 0) {
+            double distance = getDistanceTo(other.getX(), other.getY());
+            double collisionRange = this.getRadius() + other.getRadius();
+
+            if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
+                this.receiveDamage(other.getDamage());
+
+                collidingCar = other;
+                other.receiveCollision(this);
+
+                collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+                initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Constantly updates the passenger entity
      */
@@ -96,7 +168,7 @@ public class Passenger extends Entity {
             moveFinalFlagPositionDown();
         }
         // Make sure passenger coordinates are up-to-date with taxi's coordinates if they are on an ongoing trip.
-        updateWithTaxiMovement(taxi.getX(), taxi.getY());
+        updateWithDriverMovement(driver.getX(), driver.getY());
 
         // Decrease passenger's priority number if passenger is on an ongoing trip and coin effect is in place
         if (this.isPickedUp && powerUpState.isCoinActivated()) {
@@ -111,6 +183,8 @@ public class Passenger extends Entity {
             }
             this.earnings = calculateEarnings();
         }
+        updateCollisionTimeoutFramesRemaining();
+        separateFromObject(collidingCar);
     }
 
     /**
@@ -168,7 +242,7 @@ public class Passenger extends Entity {
             }
 
             // Check if the passenger can now be picked up by taxi (i.e. coordinates are equal to taxi)
-            if (calculateDistance(taxiX, taxiY) == 0) {
+            if (getDistanceTo(taxiX, taxiY) == 0) {
                 this.isPickedUp = true;  // Passenger is picked up
             }
         }
@@ -203,17 +277,18 @@ public class Passenger extends Entity {
     /**
      * Helper function to calculate distance between passenger and taxi.
      */
-    private double calculateDistance(double taxiX, double taxiY) {
-        return Math.sqrt(Math.pow(taxiX - getX(), 2) + Math.pow(taxiY - getY(), 2));
+    @Override
+    public double getDistanceTo(double otherX, double otherY) {
+        return Math.sqrt(Math.pow(otherX - getX(), 2) + Math.pow(otherY - getY(), 2));
     }
 
     /**
      * Helper function to keep passenger's coordinates up to date with taxi's coordinate
      */
-        private void updateWithTaxiMovement(int taxiX, int taxiY) {
+    private void updateWithDriverMovement(int driverX, int driverY) {
         if (isPickedUp && !isMovingToFlag) {
-            setX(taxiX);
-            setY(taxiY);
+            setX(driverX);
+            setY(driverY);
         }
     }
 
@@ -250,7 +325,7 @@ public class Passenger extends Entity {
      */
     @Override
     public void draw() {
-        if (!isPickedUp || isDroppedOff || isMovingToFlag) {
+        if (!isPickedUp || isDroppedOff || isMovingToFlag || !isInTaxi) {
             IMAGE.draw(getX(), getY());
         }
     }
@@ -326,8 +401,46 @@ public class Passenger extends Entity {
         return isPenaltyImposed;
     }
 
+    public boolean isInTaxi() {
+        return isInTaxi;
+    }
+
     public void setPenalty(double penalty) {
         this.penalty = penalty;
+        this.earnings = calculateEarnings();
         isPenaltyImposed = true;
+    }
+
+    @Override
+    public void eject() {
+        isInTaxi = false;
+        setX(getX() - EJECT_X);
+    }
+
+    @Override
+    public double getDamage() {
+        return DAMAGE;
+    }
+
+    @Override
+    public double getCurrentHealth() {
+        return currentHealth;
+    }
+
+    @Override
+    public double getRadius() {
+        return COLLISION_RADIUS;
+    }
+
+    public double getDetectRadius() {
+        return RADIUS;
+    }
+
+    public void initialiseTaxi(Taxi taxi) {
+        this.taxi = taxi;
+    }
+
+    public void initialiseDriver(Driver driver) {
+        this.driver = driver;
     }
 }

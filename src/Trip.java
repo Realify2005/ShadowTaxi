@@ -8,7 +8,7 @@ public class Trip {
     private final double PENALTY_RATE;
 
     // Constants (Entities)
-    private final Taxi TAXI;
+    private Taxi TAXI;
     private final Passenger PASSENGER;
     private final TripEndFlag TRIP_END_FLAG;
     private final PowerUpState POWER_UP_STATE;
@@ -61,7 +61,7 @@ public class Trip {
                 this.penalty = PENALTY_RATE * Math.abs(TAXI.getY() - TRIP_END_FLAG.getY());
 
                 PASSENGER.setPenalty(penalty);
-
+                // System.out.println("penalty imposed");
 /*                // Need to get updated earnings here to account for coin effect
                 earnings = getPassengerEarnings();
                 earnings -= penalty;
@@ -117,5 +117,13 @@ public class Trip {
 
     public double getPenalty() {
         return penalty;
+    }
+
+    public void setTaxi(Taxi taxi) {
+        this.TAXI = taxi;
+    }
+
+    public Passenger getPassenger() {
+        return PASSENGER;
     }
 }

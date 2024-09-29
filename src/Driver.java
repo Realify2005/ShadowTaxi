@@ -4,7 +4,7 @@ import java.util.Properties;
 /**
  * Class for the driver entity.
  */
-public class Driver extends Entity {
+public class Driver extends Entity implements Damageable, Ejectable {
     private final int FONT_SIZE;
     private final String FONT_PATH;
 
@@ -17,9 +17,18 @@ public class Driver extends Entity {
     private final int DRIVER_TEXT_X;
     private final int DRIVER_TEXT_Y;
 
+    private final int SEPARATE_X = 2;
+    private final int SEPARATE_Y = 2;
+    private final int EJECT_X = 50;
+    private final int DAMAGE = 0;
+
     // Variables
     private boolean inTaxi;
     private double currentHealth;
+    private Car collidingCar;
+
+    private int initialCollisionTimeoutFramesRemaining;
+    private int collisionTimeoutFramesRemaining;
 
     public Driver(int x, int y, Properties gameProps, Properties messageProps) {
         super(x, y, gameProps, "gameObjects.driver.image", "gameObjects.driver.radius");
@@ -41,6 +50,67 @@ public class Driver extends Entity {
         this.currentHealth = HEALTH;
     }
 
+    @Override
+    public void receiveDamage(double damage) {
+        this.currentHealth -= damage;
+        if (this.currentHealth < 0) {
+            this.currentHealth = 0;
+        }
+    }
+
+    @Override
+    public void updateCollisionTimeoutFramesRemaining() {
+        if (initialCollisionTimeoutFramesRemaining > 0) {
+            initialCollisionTimeoutFramesRemaining--;
+        }
+        if (collisionTimeoutFramesRemaining > 0) {
+            collisionTimeoutFramesRemaining--;
+        }
+    }
+
+    @Override
+    public void separateFromObject(Damageable other) {
+        if (initialCollisionTimeoutFramesRemaining > 0 && initialCollisionTimeoutFramesRemaining <= 10) {
+            int otherX = other.getX();
+            int otherY = other.getY();
+            int thisX = this.getX();
+            int thisY = this.getY();
+
+            if (thisX < otherX) {
+                this.setX(thisX - SEPARATE_X);
+            } else {
+                this.setX(thisX + SEPARATE_X);
+            }
+            if (thisY < otherY) {
+                this.setY(thisY - SEPARATE_Y);
+            } else {
+                this.setY(thisY + SEPARATE_Y);
+            }
+        }
+    }
+
+    @Override
+    public boolean handleCollision(Car other) {
+
+        if (other.getCurrentHealth() > 0) {
+            double distance = getDistanceTo(other.getX(), other.getY());
+            double collisionRange = this.getRadius() + other.getRadius();
+
+            if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
+                this.receiveDamage(other.getDamage());
+
+                collidingCar = other;
+                other.receiveCollision(this);
+
+                collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+                initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void update(Input input, Taxi taxi) {
         if (!inTaxi) {
             draw();
@@ -57,7 +127,9 @@ public class Driver extends Entity {
                 moveRight();
             }
         }
+        updateCollisionTimeoutFramesRemaining();
         updateWithTaxiMovement(taxi.getX(), taxi.getY());
+        separateFromObject(collidingCar);
         renderHealth();
     }
 
@@ -92,7 +164,8 @@ public class Driver extends Entity {
         return getDistanceTo(taxi.getX(), taxi.getY()) <= TAXI_GET_IN_RADIUS;
     }
 
-    private double getDistanceTo(double targetX, double targetY) {
+    @Override
+    public double getDistanceTo(double targetX, double targetY) {
         return Math.sqrt(Math.pow((targetX - getX()), 2) + Math.pow((targetY - getY()), 2));
     }
 
@@ -108,13 +181,6 @@ public class Driver extends Entity {
         font.drawString( DRIVER_TEXT + currentHealth, DRIVER_TEXT_X, DRIVER_TEXT_Y);
     }
 
-    public void ejectFromTaxi() {
-        if (inTaxi) {
-            setX(getX() - 50);
-            this.inTaxi = false;
-        }
-    }
-
     public boolean isInTaxi() {
         return inTaxi;
     }
@@ -126,4 +192,25 @@ public class Driver extends Entity {
     }
 
     public int getTaxiGetInRadius() { return TAXI_GET_IN_RADIUS; }
+
+    @Override
+    public void eject() {
+        inTaxi = false;
+        setX(getX() - EJECT_X);
+    }
+
+    @Override
+    public double getDamage() {
+        return DAMAGE;
+    }
+
+    @Override
+    public double getCurrentHealth() {
+        return currentHealth;
+    }
+
+    @Override
+    public double getRadius() {
+        return RADIUS;
+    }
 }

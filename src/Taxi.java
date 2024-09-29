@@ -5,7 +5,7 @@ import bagel.Image;
 /**
  * Class for the taxi entity.
  */
-public class Taxi extends Entity {
+public class Taxi extends Entity implements Damageable {
 
     // Constant that defines the horizontal and vertical speed of taxi.
     private final int SPEED_X;
@@ -14,6 +14,9 @@ public class Taxi extends Entity {
     private boolean hasDriver;
     private Passenger currentPassenger;
     private double currentHealth;
+    private int initialCollisionTimeoutFramesRemaining;
+    private int collisionTimeoutFramesRemaining;
+    private Car collidingCar;
 
     private final String FONT_PATH;
     private final int FONT_SIZE;
@@ -25,8 +28,8 @@ public class Taxi extends Entity {
     private final Image DAMAGED_IMAGE;
     private final double HEALTH;
     private final double DAMAGE;
-    private final int NEXT_SPAWN_MIN_Y;
-    private final int NEXT_SPAWN_MAX_Y;
+
+    private final int SEPARATE_Y = 1;
 
     private final Gameplay GAMEPLAY;
 
@@ -50,10 +53,64 @@ public class Taxi extends Entity {
         DAMAGED_IMAGE = new Image(gameProps.getProperty("gameObjects.taxi.damagedImage"));
         HEALTH = Double.parseDouble(gameProps.getProperty("gameObjects.taxi.health")) * PROPS_TO_GAME_MULTIPLIER;
         DAMAGE = Double.parseDouble(gameProps.getProperty("gameObjects.taxi.damage")) * PROPS_TO_GAME_MULTIPLIER;
-        NEXT_SPAWN_MIN_Y = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.nextSpawnMinY"));
-        NEXT_SPAWN_MAX_Y = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.nextSpawnMaxY"));
 
         this.currentHealth = HEALTH;
+    }
+
+    @Override
+    public void receiveDamage(double damage) {
+        this.currentHealth -= damage;
+        if (this.currentHealth < 0) {
+            this.currentHealth = 0;
+            hasDriver = false; // driver gets ejected
+            currentPassenger = null; // passenger gets ejected
+        }
+    }
+
+    @Override
+    public void updateCollisionTimeoutFramesRemaining() {
+        if (initialCollisionTimeoutFramesRemaining > 0) {
+            initialCollisionTimeoutFramesRemaining--;
+        }
+        if (collisionTimeoutFramesRemaining > 0) {
+            collisionTimeoutFramesRemaining--;
+        }
+    }
+
+    @Override
+    public void separateFromObject(Damageable other) {
+        if (initialCollisionTimeoutFramesRemaining > 0 && initialCollisionTimeoutFramesRemaining <= 10) {
+            int otherY = other.getY();
+            int thisY = this.getY();
+
+            if (thisY < otherY) {
+                this.setY(thisY - SEPARATE_Y);
+            } else {
+                this.setY(thisY + SEPARATE_Y);
+            }
+        }
+    }
+
+    @Override
+    public boolean handleCollision(Car other) {
+
+        if (other.getCurrentHealth() > 0) {
+            double distance = getDistanceTo(other.getX(), other.getY());
+            double collisionRange = this.getRadius() + other.getRadius();
+
+            if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
+                this.receiveDamage(other.getDamage());
+
+                collidingCar = other;
+                other.receiveCollision(this);
+
+                collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+                initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -63,6 +120,8 @@ public class Taxi extends Entity {
     public void update(Input input) {
         draw();
         checkIsCurrentPassengerDroppedOff();
+        updateCollisionTimeoutFramesRemaining();
+        separateFromObject(collidingCar);
         isTaxiMoved = false;
 
         if (hasDriver) {
@@ -87,7 +146,9 @@ public class Taxi extends Entity {
             }
         }
 
-        renderHealth();
+        if (currentHealth > 0) {
+            renderHealth();
+        }
     }
 
     /**
@@ -109,8 +170,7 @@ public class Taxi extends Entity {
      */
     @Override
     public void draw() {
-        IMAGE.draw(getX(), getY());
-        // Damaged car etc logic here
+        (currentHealth > 0 ? IMAGE : DAMAGED_IMAGE).draw(getX(), getY());
     }
 
     private void renderHealth() {
@@ -165,7 +225,7 @@ public class Taxi extends Entity {
      * Helper function to check if taxi is adjacent to any passengers.
      */
     public boolean isAdjacentToPassenger(Passenger passenger) {
-        return getDistanceTo(passenger.getX(), passenger.getY()) <= passenger.getRadius();
+        return getDistanceTo(passenger.getX(), passenger.getY()) <= passenger.getDetectRadius();
     }
 
     public boolean isAdjacentToDriver(Driver driver) {
@@ -176,7 +236,8 @@ public class Taxi extends Entity {
      * Helper function to get distances from taxi to another object.
      * Used for distance between taxi and passenger, between taxi and trip end flag, and between taxi and coins.
      */
-    private double getDistanceTo(double targetX, double targetY) {
+    @Override
+    public double getDistanceTo(double targetX, double targetY) {
         return Math.sqrt(Math.pow((targetX - getX()), 2) + Math.pow((targetY - getY()), 2));
     }
 
@@ -212,4 +273,30 @@ public class Taxi extends Entity {
         return hasDriver;
     }
 
+    @Override
+    public double getDamage() {
+        return DAMAGE;
+    }
+
+    @Override
+    public double getRadius() {
+        return RADIUS;
+    }
+
+    @Override
+    public double getCurrentHealth() {
+        return currentHealth;
+    }
+
+    public Passenger getCurrentPassenger() {
+        return currentPassenger;
+    }
+
+    public void driverEjected() {
+        hasDriver = false;
+    }
+
+    public void setCurrentPassenger(Passenger passenger) {
+        currentPassenger = passenger;
+    }
 }
