@@ -270,15 +270,17 @@ public class Gameplay {
                 driver.eject();
                 taxi.driverEjected();
             }
-            taxi = new Taxi(getTaxiRandomSpawnX(), getTaxiRandomSpawnY(), this, GAME_PROPS, MESSAGE_PROPS);
+            taxi = new Taxi(getTaxiRandomSpawnX(), getTaxiRandomSpawnY(), this,
+                    POWER_UP_STATE, GAME_PROPS, MESSAGE_PROPS);
             if (trip != null) {
                 trip.setTaxi(taxi);
             }
+            POWER_UP_STATE.resetPowerUps(); // Power ups dont carry over to driver (resets)
         }
 
         for (PowerUp powerUp : powerUps) {
             powerUp.update(input);
-            if (taxi.collidedWith(powerUp) && !powerUp.isTaken()) {
+            if ((taxi.collidedWith(powerUp) || driver.collidedWith(powerUp)) && !powerUp.isTaken()) {
                 POWER_UP_STATE.activatePowerUp(powerUp);
             }
             // If driver collided with coin/invincible power too...

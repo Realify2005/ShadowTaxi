@@ -32,13 +32,15 @@ public class Taxi extends Entity implements Damageable {
     private final int SEPARATE_Y = 1;
 
     private final Gameplay GAMEPLAY;
+    private final PowerUpState POWER_UP_STATE;
 
-    public Taxi(int x, int y, Gameplay gameplay, Properties gameProps, Properties messageProps) {
+    public Taxi(int x, int y, Gameplay gameplay, PowerUpState powerUpState, Properties gameProps, Properties messageProps) {
         super(x, y, gameProps, "gameObjects.taxi.image", "gameObjects.taxi.radius");
         this.isTaxiMoved = false;
         this.hasDriver = false;
         this.currentPassenger = null;
         this.GAMEPLAY = gameplay;
+        this.POWER_UP_STATE = powerUpState;
 
         SPEED_X = Integer.parseInt(gameProps.getProperty("gameObjects.taxi.speedX"));
 
@@ -99,13 +101,13 @@ public class Taxi extends Entity implements Damageable {
             double collisionRange = this.getRadius() + other.getRadius();
 
             if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
-                this.receiveDamage(other.getDamage());
-
                 collidingCar = other;
                 other.receiveCollision(this);
-
-                collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
-                initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                if (!POWER_UP_STATE.isInvincibleActivated()) {
+                    collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+                    initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                    this.receiveDamage(other.getDamage());
+                }
                 return true;
             }
         }

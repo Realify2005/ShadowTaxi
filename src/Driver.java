@@ -30,7 +30,9 @@ public class Driver extends Entity implements Damageable, Ejectable {
     private int initialCollisionTimeoutFramesRemaining;
     private int collisionTimeoutFramesRemaining;
 
-    public Driver(int x, int y, Properties gameProps, Properties messageProps) {
+    private final PowerUpState POWER_UP_STATE;
+
+    public Driver(int x, int y, PowerUpState powerUpState, Properties gameProps, Properties messageProps) {
         super(x, y, gameProps, "gameObjects.driver.image", "gameObjects.driver.radius");
         this.inTaxi = false;
 
@@ -47,6 +49,7 @@ public class Driver extends Entity implements Damageable, Ejectable {
         DRIVER_TEXT_X = Integer.parseInt(gameProps.getProperty("gamePlay.driverHealth.x"));
         DRIVER_TEXT_Y = Integer.parseInt(gameProps.getProperty("gamePlay.driverHealth.y"));
 
+        this.POWER_UP_STATE = powerUpState;
         this.currentHealth = HEALTH;
     }
 
@@ -97,13 +100,13 @@ public class Driver extends Entity implements Damageable, Ejectable {
             double collisionRange = this.getRadius() + other.getRadius();
 
             if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
-                this.receiveDamage(other.getDamage());
-
                 collidingCar = other;
                 other.receiveCollision(this);
-
-                collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
-                initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                if (!POWER_UP_STATE.isInvincibleActivated()) {
+                    collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
+                    initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
+                    this.receiveDamage(other.getDamage());
+                }
                 return true;
             }
         }
@@ -167,6 +170,14 @@ public class Driver extends Entity implements Damageable, Ejectable {
     @Override
     public double getDistanceTo(double targetX, double targetY) {
         return Math.sqrt(Math.pow((targetX - getX()), 2) + Math.pow((targetY - getY()), 2));
+    }
+
+    /**
+     * Checks if taxi has collided with any power-ups.
+     */
+    public boolean collidedWith(PowerUp powerUp) {
+        double collisionRange = RADIUS + powerUp.getRadius();
+        return getDistanceTo(powerUp.getX(), powerUp.getY()) <= collisionRange;
     }
 
     @Override

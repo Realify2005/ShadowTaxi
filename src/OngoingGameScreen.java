@@ -131,12 +131,12 @@ public class OngoingGameScreen extends Screen {
                 case "TAXI":
                     int taxiX = Integer.parseInt(objectData[1]);
                     int taxiY = Integer.parseInt(objectData[2]);
-                    taxi = new Taxi(taxiX, taxiY, gameplay, GAME_PROPS, MESSAGE_PROPS);
+                    taxi = new Taxi(taxiX, taxiY, gameplay, powerUpState, GAME_PROPS, MESSAGE_PROPS);
                     break;
                 case "DRIVER":
                     int driverX = Integer.parseInt(objectData[1]);
                     int driverY = Integer.parseInt(objectData[2]);
-                    driver = new Driver(driverX, driverY, GAME_PROPS, MESSAGE_PROPS);
+                    driver = new Driver(driverX, driverY, powerUpState, GAME_PROPS, MESSAGE_PROPS);
                     break;
                 case "PASSENGER":
                     int passengerX = Integer.parseInt(objectData[1]);

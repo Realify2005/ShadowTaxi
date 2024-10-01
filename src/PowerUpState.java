@@ -106,6 +106,12 @@ public class PowerUpState {
         }
     }
 
+    public void resetPowerUps() {
+        this.coinFrameCount = COIN_MAX_FRAMES;
+        this.invincibleFrameCount = INVINCIBLE_MAX_FRAMES;
+        // reset all powerups for when driver is ejected from taxi
+    }
+
     public boolean isCoinActivated() {
         return isCoinActivated;
     }
