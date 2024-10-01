@@ -138,7 +138,7 @@ public class Passenger extends Entity implements Damageable, Ejectable {
     @Override
     public boolean handleCollision(Car other) {
 
-        if (other.getCurrentHealth() > 0) {
+        if (other.getCurrentHealth() > 0 && !isInTaxi) {
             double distance = getDistanceTo(other.getX(), other.getY());
             double collisionRange = this.getRadius() + other.getRadius();
 
