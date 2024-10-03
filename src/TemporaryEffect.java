@@ -54,9 +54,12 @@ public abstract class TemporaryEffect implements Drawable, Scrollable {
     /**
      * Render the temporary effect and reduce its current remaining frames.
      */
-    public void update() {
+    public void update(Input input) {
         draw();
         updateFramesRemaining();
+        if (input.isDown(Keys.UP)) {
+            moveDown();
+        }
     }
 
     /**

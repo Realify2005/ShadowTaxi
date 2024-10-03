@@ -1,3 +1,5 @@
+Assumptions:
+
 #619 in EDSTEM, I have already implemented alternative logic in which the passenger priority is still dynamic even if
 it is already in the taxi and being dropped off. It only stays after it is dropped off to the sideway, trip is done,
 and earnings calculated etc. (This is the alternative logic that tutor Charlie Ding mentioned in a reply to few threads

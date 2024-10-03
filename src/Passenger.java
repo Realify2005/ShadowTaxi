@@ -302,23 +302,18 @@ public class Passenger extends Entity implements Damageable, Ejectable {
      */
     @Override
     public boolean handleCollision(Car other) {
-
         if (other.getCurrentHealth() > 0 && !isInTaxi) {
             double distance = getDistanceTo(other.getX(), other.getY());
             double collisionRange = this.getRadius() + other.getRadius();
-
             if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
                 this.receiveDamage(other.getDamage());
-
                 collidingCar = other;
                 other.receiveCollision(this);
-
                 collisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_TOTAL;
                 initialCollisionTimeoutFramesRemaining = COLLISION_TIMEOUT_FRAMES_INITIAL;
                 return true;
             }
         }
-
         return false;
     }
 
@@ -418,6 +413,7 @@ public class Passenger extends Entity implements Damageable, Ejectable {
             // Check if the passenger can now be picked up by taxi (i.e. coordinates are equal to taxi)
             if (getDistanceTo(taxiX, taxiY) == 0) {
                 this.isPickedUp = true;  // Passenger is picked up
+                this.isInTaxi = true;
             }
         }
     }
