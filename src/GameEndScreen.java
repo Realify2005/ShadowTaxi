@@ -8,35 +8,86 @@ import java.util.Collections;
  * GameEndScreen class handles all the logic of the end of the game.
  * Renders the required screens and texts.
  */
-
 public class GameEndScreen extends Screen {
 
-    // Constants related to rendering.
+    /**
+     * The font size for displaying the scores.
+     */
     private final int SCORES_FONT_SIZE;
+
+    /**
+     * The font size for displaying the win/loss status.
+     */
     private final int STATUS_FONT_SIZE;
+
+    /**
+     * The file path for storing and retrieving scores.
+     */
     private final String SCORES_FILE;
 
-    // Constants related to the texts from message_en.properties.
+    /**
+     * The text displayed for the highest scores section.
+     */
     private final String SCORES_TEXT;
+
+    /**
+     * The text displayed when the player wins the game.
+     */
     private final String WON_TEXT;
+
+    /**
+     * The text displayed when the player loses the game.
+     */
     private final String LOST_TEXT;
 
-    // Constants related to Y coordinates for rendered texts.
+    /**
+     * The Y-coordinate for displaying the scores text.
+     */
     private final int SCORES_Y;
+
+    /**
+     * The Y-coordinate for displaying the win/loss status text.
+     */
     private final int WON_LOST_Y;
 
-    // Constants related to integers used in gameplay.
+    /**
+     * The target score the player needs to achieve to win the game.
+     */
     private final double TARGET_SCORE;
+
+    /**
+     * The maximum number of top scores to display.
+     */
     private final int MAX_NUM_SCORES;
 
-    // Constant that defines the Y distance between rendered lines in the game end screen.
+    /**
+     * The distance between lines of text drawn in the game end screen.
+     */
     private final int DISTANCE_BETWEEN_LINES;
 
-    // Variables
+    /**
+     * The list of top scores to be displayed on the game end screen.
+     */
     private final ArrayList<ScoreEntry> TOP_SCORES;
+
+    /**
+     * The current player's name.
+     */
     private final String PLAYER_NAME;
+
+    /**
+     * The current player's final score.
+     */
     private final double PLAYER_SCORE;
 
+    /**
+     * Constructor for GameEndScreen class.
+     * Initialises the current player name, current player score, as well as both game and message properties.
+     * @param playerName The current player's name.
+     * @param playerScore The current player's score.
+     * @param gameProperties The properties object containing game configuration values.
+     * @param messageProperties The properties object containing rendered text configuration values.
+     */
     public GameEndScreen(String playerName, double playerScore,
                          Properties gameProperties, Properties messageProperties) {
         super(gameProperties, messageProperties, new Image(gameProperties.getProperty("backgroundImage.gameEnd")));
@@ -61,15 +112,15 @@ public class GameEndScreen extends Screen {
         MAX_NUM_SCORES = 5;
         DISTANCE_BETWEEN_LINES = 40;
 
-        // Need to load scores at the end since SCORES_FILE need to be assigned first.
+        // Load top scores after SCORES_FILE is initialized.
         this.TOP_SCORES = loadTopScores();
 
-        // Add current player score to score file (i.e. scores.csv)
+        // Write current player's score to the score file.
         IOUtils.writeScoreToFile(SCORES_FILE, this.PLAYER_NAME + "," + this.PLAYER_SCORE);
     }
 
     /**
-     * Renders the game end screen.
+     * Renders the game end screen, displaying the top scores and the win/loss status.
      */
     @Override
     public void draw() {
@@ -90,7 +141,7 @@ public class GameEndScreen extends Screen {
 
         Font winLoseFont = new Font(FONT_PATH, STATUS_FONT_SIZE);
 
-        // Renders the won/lost text
+        // Render the won/lost status text.
         String winLoseText = PLAYER_SCORE >= TARGET_SCORE ? WON_TEXT : LOST_TEXT;
         winLoseFont.drawString(winLoseText, (Window.getWidth() -
                 winLoseFont.getWidth(winLoseText)) / 2.0, WON_LOST_Y);
@@ -100,6 +151,7 @@ public class GameEndScreen extends Screen {
      * Loads the scores file.
      * Sort all entries in descending order according to the score.
      * Takes the top 5 score to be shown on screen.
+     * @return A list of the top 5 scores to be displayed on the screen.
      */
     private ArrayList<ScoreEntry> loadTopScores() {
         ArrayList<ScoreEntry> scores = new ArrayList<>();
@@ -111,7 +163,7 @@ public class GameEndScreen extends Screen {
             scores.add(new ScoreEntry(name, score));
         }
 
-        // Add current player name and score.
+        // Add the current player's name and score to the list.
         scores.add(new ScoreEntry(PLAYER_NAME, PLAYER_SCORE));
 
         // Sort scores in descending order.
@@ -119,7 +171,7 @@ public class GameEndScreen extends Screen {
 
         int numOfRecords = scores.size();
 
-        // Returns the 5 best scores. If there are less than 5 scores, all scores will be returned.
+        // Return the top 5 scores (or fewer if there are less than 5).
         return new ArrayList<>(scores.subList(0, Math.min(numOfRecords, MAX_NUM_SCORES)));
     }
 }

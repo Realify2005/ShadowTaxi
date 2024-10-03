@@ -1,6 +1,5 @@
 import bagel.Font;
 import bagel.*;
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.HashSet;
@@ -130,7 +129,7 @@ public class Gameplay {
      * Constantly updates the gameplay class.
      * This function performs all the needed checks at any given time to make the gameplay smooth.
      */
-    public void update(Input input) {
+    public void update(Input input, boolean isRaining) {
         renderTripInfo();
         taxi.update(input);
 
@@ -152,6 +151,8 @@ public class Gameplay {
             if (passenger.getCurrentHealth() < this.passengerHealth) {
                 this.lowestPassengerHealth = passenger.getCurrentHealth();
             }
+
+            passenger.update(input, isRaining);
         }
 
         // Set trip as completed as soon as passenger leaves the taxi.
@@ -275,7 +276,7 @@ public class Gameplay {
             if (trip != null) {
                 trip.setTaxi(taxi);
             }
-            POWER_UP_STATE.resetPowerUps(); // Power ups dont carry over to driver (resets)
+            POWER_UP_STATE.resetPowerUps(); // Power ups do not carry over to driver (resets when driver is ejected).
         }
 
         for (PowerUp powerUp : powerUps) {
@@ -362,13 +363,6 @@ public class Gameplay {
                 passenger.getDistanceY(), GAME_PROPS);
         trip = new Trip(taxi, passenger, tripEndFlag, POWER_UP_STATE, GAME_STATS, GAME_PROPS);
         trip.beginTrip();
-    }
-
-    public void resetObjects() {
-        cars = new ArrayList<>();
-        fireballs = new ArrayList<>();
-        damagedTaxis = new ArrayList<>();
-        temporaryEffects = new ArrayList<>();
     }
 
     private void renderPassengerHealth() {

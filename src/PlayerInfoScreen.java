@@ -3,32 +3,60 @@ import bagel.util.Colour;
 import java.util.Properties;
 
 /**
- * Class to render the player info screen.
+ * Class to render the player info screen and its contents.
+ * Responsible for letting the player enter their name and keeping track of it.
  */
 public class PlayerInfoScreen extends Screen {
 
-    // Constants related to rendering.
+    /**
+     * The font size used for rendering texts on the player info screen.
+     */
     private final int FONT_SIZE;
 
-    // Constants related to the texts from message_en.properties.
+    /**
+     * The text label for the player name input field.
+     */
     private final String PLAYER_NAME_TEXT;
+
+    /**
+     * The text label for the start prompt.
+     */
     private final String START_TEXT;
 
-    // Constants related to Y coordinates for rendered texts.
+    /**
+     * The Y-coordinate for the player name text label.
+     */
     private final double PLAYER_NAME_Y;
+
+    /**
+     * The Y-coordinate for the input player name box.
+     */
     private final double PLAYER_NAME_INPUT_Y;
+
+    /**
+     * The Y-coordinate for the start prompt text label.
+     */
     private final double START_Y;
 
-    // Constant that defines the distance between lines for additional instructions.
+    /**
+     * The vertical distance between the lines of instructions text.
+     */
     private final double DISTANCE_BETWEEN_LINES;
 
-    // Variables
+    /**
+     * The player's name as entered by the player.
+     */
     private String playerName = "";
 
+
+    /**
+     * Constructor for player info screen class.
+     * @param gameProps The properties object containing game configuration values.
+     * @param messageProps The properties object containing text configuration values.
+     */
     public PlayerInfoScreen(Properties gameProps, Properties messageProps) {
         super(gameProps, messageProps, new Image(gameProps.getProperty("backgroundImage.playerInfo")));
 
-        // Initialize constants
         FONT_SIZE = Integer.parseInt(GAME_PROPS.getProperty("playerInfo.fontSize"));
 
         PLAYER_NAME_TEXT = MESSAGE_PROPS.getProperty("playerInfo.playerName");
@@ -38,11 +66,11 @@ public class PlayerInfoScreen extends Screen {
         PLAYER_NAME_INPUT_Y = Double.parseDouble(GAME_PROPS.getProperty("playerInfo.playerNameInput.y"));
         START_Y = Double.parseDouble(GAME_PROPS.getProperty("playerInfo.start.y"));
 
-        DISTANCE_BETWEEN_LINES = 30; // Set distance between lines for additional instructions
+        DISTANCE_BETWEEN_LINES = 30; // Set distance between lines for instructions text
     }
 
     /**
-     * Draws the player info screen.
+     * Draws the player info screen and its contents.
      */
     @Override
     public void draw() {
@@ -103,6 +131,10 @@ public class PlayerInfoScreen extends Screen {
         playerName = "";
     }
 
+    /**
+     * Gets the current player's name.
+     * @return Current player's name.
+     */
     public String getPlayerName() {
         return playerName;
     }

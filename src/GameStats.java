@@ -7,37 +7,95 @@ import java.util.Properties;
  * This class is also responsible for rendering the texts that describe these statistics in the game
  */
 public class GameStats {
-    // Constants related to font for rendering texts.
+    /**
+     * The path to the font file used for rendering texts.
+     */
     private final String FONT_PATH;
+
+    /**
+     * The font size used for rendering texts.
+     */
     private final int FONT_SIZE;
 
-    // Constants related to integers used in gameplay.
+    /**
+     * The target score the player must reach during gameplay to win.
+     */
     private final double TARGET_SCORE;
+
+    /**
+     * The maximum number of frames allowed in the game.
+     * Game ends in a lost if target score is not reached within this timeframe.
+     */
     private final int MAX_FRAMES;
 
-    // Constants related to X and Y coordinates of where the text is rendered.
+    /**
+     * The X-coordinate where the remaining frames text is rendered.
+     */
     private final int MAX_FRAMES_X;
+
+    /**
+     * The Y-coordinate where the remaining frames text is rendered.
+     */
     private final int MAX_FRAMES_Y;
+
+    /**
+     * The X-coordinate where the target score text is rendered.
+     */
     private final int TARGET_X;
+
+    /**
+     * The Y-coordinate where the target score text is rendered.
+     */
     private final int TARGET_Y;
+
+    /**
+     * The X-coordinate where the earnings text is rendered.
+     */
     private final int EARNINGS_X;
+
+    /**
+     * The Y-coordinate where the earnings text is rendered.
+     */
     private final int EARNINGS_Y;
 
-    // Constants related to the texts referred from message_en.properties.
+    /**
+     * The label text for displaying earnings.
+     */
     private final String EARNINGS_TEXT;
+
+    /**
+     * The label text for displaying the remaining frames.
+     */
     private final String REM_FRAMES_TEXT;
+
+    /**
+     * The label text for displaying the target score.
+     */
     private final String TARGET_TEXT;
 
-    // Constant that defines the change in remaining frames per unit time.
+    /**
+     * The amount of remaining frames that decrease per unit time.
+     */
     private final int CHANGE_IN_FRAME;
 
-    // Variables
+    /**
+     * The current gameplay total score.
+     */
     private double totalScore;
+
+    /**
+     * The number of frames remaining in the game.
+     */
     private int remainingFrames;
 
+    /**
+     * Constructor for GameStats class.
+     * Initialises the initial total score to 0, and set remaining frames as the maximum number of frames.
+     * Initialises the various text and (x, y) coordinates related to displaying game statistics too.
+     * @param gameProps The properties object containing game configuration values.
+     * @param messageProps The properties object containing text configuration values.
+     */
     public GameStats(Properties gameProps, Properties messageProps) {
-        this.totalScore = 0;
-
         TARGET_SCORE = Double.parseDouble(gameProps.getProperty("gamePlay.target"));
         MAX_FRAMES = Integer.parseInt(gameProps.getProperty("gamePlay.maxFrames"));
 
@@ -57,6 +115,7 @@ public class GameStats {
 
         CHANGE_IN_FRAME = 1;
 
+        this.totalScore = 0;
         this.remainingFrames = MAX_FRAMES;
     }
 
@@ -70,6 +129,7 @@ public class GameStats {
 
     /**
      * Accumulate trip earnings.
+     * @param tripEarnings The earnings of last trip to be added to the total earnings.
      */
     public void addTotalScore(double tripEarnings) {
         this.totalScore += tripEarnings;
@@ -102,10 +162,18 @@ public class GameStats {
         font.drawString(remainingFramesText, MAX_FRAMES_X, MAX_FRAMES_Y);
     }
 
+    /**
+     * Gets the remaining maximum game frames.
+     * @return The remaining game frames before the game must end in a lost.
+     */
     public int getRemainingFrames() {
         return remainingFrames;
     }
 
+    /**
+     * Gets the current total score.
+     * @return The current total score.
+     */
     public double getTotalScore() {
         return totalScore;
     }

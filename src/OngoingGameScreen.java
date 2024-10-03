@@ -5,35 +5,95 @@ import java.util.Properties;
 
 /**
  * Class to render the ongoing game screen.
+ * Handles the logic behind switching between sunny and rainy background screens.
  * Also handles the ongoing game's background scrolling.
  */
 public class OngoingGameScreen extends Screen {
 
-    // Constant that defines the vertical scroll speed of the ongoing game background.
+    /**
+     * The vertical movement speed of the ongoing game background.
+     */
     private final int SCROLL_SPEED;
 
+    /**
+     * The maximum height of the game window.
+     */
     private final int WINDOW_MAX_HEIGHT;
 
-    // Game entities
+    /**
+     * The taxi entity in the ongoing game.
+     */
     private Taxi taxi;
+
+    /**
+     * The driver entity in the ongoing game.
+     */
     private Driver driver;
+
+    /**
+     * The list of all passenger entities in the ongoing game.
+     */
     private ArrayList<Passenger> passengers;
+
+    /**
+     * The list of all power-ups in the ongoing game.
+     */
     private ArrayList<PowerUp> powerUps;
-    private ArrayList<TemporaryEffect> temporaryEffects;
+
+    /**
+     * The trip end flag is placed at the end target Y-coordinate of a current active trip to drop off the passenger to.
+     */
     private TripEndFlag tripEndFlag;
+
+    /**
+     * The current state of power-ups in the ongoing game.
+     */
     private PowerUpState powerUpState;
+
+    /**
+     * Class to track various game statistics and renders them on screen.
+     */
     private GameStats gameStats;
+
+    /**
+     * Class that manages the central game flow and interactions.
+     */
     private Gameplay gameplay;
 
+    /**
+     * A boolean flag indicating whether the weather is currently raining or not.
+     */
     private boolean isRaining;
 
-    // Ongoing game background positions
-    private double background1Y = Window.getHeight() / 2.0; // Y-coordinate = 384
-    private double background2Y = -Window.getHeight() / 2.0; // Y-coordinate = -384
+    /**
+     * The Y-coordinate position for the first background to mimic scrolling effect.
+     */
+    private double background1Y = Window.getHeight() / 2.0;
 
+    /**
+     * The Y-coordinate position for the second background to mimic scrolling effect.
+     */
+    private double background2Y = -Window.getHeight() / 2.0;
+
+    /**
+     * List of weather conditions that controls the sunny/rainy weather in-game.
+     */
     private ArrayList<Weather> weatherInfo;
+
+    /**
+     * The current frame of the game, increases by 1 per unit time and is capped at a certain number.
+     */
     private int currentFrame;
 
+    /**
+     * Constructor for ongoing game screen class.
+     * Initialises both sunny/rainy background images, various gameplay related classes to handle logic and track
+     * gameplay statistics.
+     * Calls helper functions to load in and create initial entities on screen as well as sunny/rain conditions based
+     * on game objects and weather information files.
+     * @param gameProps The properties object containing game configuration values.
+     * @param messageProps The properties object containing text configuration values.
+     */
     public OngoingGameScreen(Properties gameProps, Properties messageProps) {
         super(gameProps, messageProps, new Image(gameProps.getProperty("backgroundImage.sunny")));
 
@@ -49,7 +109,6 @@ public class OngoingGameScreen extends Screen {
         loadWeatherInfo(gameProps.getProperty("gamePlay.weatherFile"));
 
         currentFrame = 0;
-        temporaryEffects = new ArrayList<>();
     }
 
     /**
@@ -85,8 +144,9 @@ public class OngoingGameScreen extends Screen {
     }
 
     /**
-     * Constantly updates the ongoing game background screen.
+     * Constantly updates the ongoing game background screen, including all the helper classes to control gameplay flow.
      * Mainly for the vertical scrolling.
+     * @param input The current mouse/keyboard input.
      */
     public void update(Input input) {
         final int BACKGROUND_LEFT_BOTTOM_WINDOW = 1152;
@@ -106,20 +166,16 @@ public class OngoingGameScreen extends Screen {
 
         }
 
-        for (Passenger passenger : passengers) {
-            passenger.update(input, isRaining);
-        }
-
         powerUpState.update();
         gameStats.update();
-        gameplay.update(input);
+        gameplay.update(input, isRaining);
     }
 
     /**
-     * Loads given file path, creates instance of taxi,
-     * array of passengers instances, array of coins instances
-     * to be used by the game (class).
-     * @param filePath The csv file path to be processed (i.e. gameObjects.csv).
+     * Loads given game object file path, creates instance of taxi, driver, array of passengers instances,
+     * array of coins instances, and array of invincible power instances to be used by the game (class).
+     * Also initialises necessary other classes inside classes such as gameplay and passenger for gameplay logic.
+     * @param filePath The game objects csv file path to be processed (i.e. gameObjects.csv).
      */
     private void loadGameObjects(String filePath) {
         String[][] gameObjects = IOUtils.readCommaSeparatedFile(filePath);
@@ -165,11 +221,15 @@ public class OngoingGameScreen extends Screen {
         gameplay.initialisePowerUps(powerUps);
 
         for (Passenger passenger : passengers) {
-            passenger.initialiseTaxi(taxi);
             passenger.initialiseDriver(driver);
         }
     }
 
+    /**
+     * Loads given weather file path, creates instances of Weather and stores them in a list.
+     * This will serve as a guide to the type of weather (sunny/rainy) to be rendered at a certain timeframe.
+     * @param filePath The weather csv file path to be processed (i.e. gameWeather.csv).
+     */
     private void loadWeatherInfo(String filePath) {
         weatherInfo = new ArrayList<>();
         String[][] rows = IOUtils.readCommaSeparatedFile(filePath);
@@ -181,6 +241,10 @@ public class OngoingGameScreen extends Screen {
         }
     }
 
+    /**
+     * Gets the current weather type at a given timeframe.
+     * @return The weather type for currentFrame.
+     */
     private Weather getCurrentWeather() {
         for (Weather weather : weatherInfo) {
             if (currentFrame >= weather.getStartFrame() && currentFrame <= weather.getEndFrame()) {
@@ -204,35 +268,67 @@ public class OngoingGameScreen extends Screen {
         resetBackground();
         loadGameObjects(GAME_PROPS.getProperty("gamePlay.objectsFile"));
         currentFrame = 0;
-
-        gameplay.resetObjects();
     }
 
     /**
-     * Checks if the game has ended.
+     * Checks if the game can end.
+     * There are 5 conditions in which a game can be declared to have ended, each will be explained in its own functions
+     * below.
+     * @return True if game can end, false otherwise.
      */
-    public boolean hasGameEnded() {
-        return ranOutOfFrames() || winningScoreReached() || taxiLeftScreenWithoutDriver() || isDriverDead();
+    public boolean canGameEnd() {
+        return ranOutOfFrames() || winningScoreReached() || taxiLeftScreenWithoutDriver()
+                || isDriverDead() || isPassengerDead();
     }
 
-    private boolean ranOutOfFrames() {
-        return gameStats.getRemainingFrames() <= 0;
-    }
-
+    /**
+     * Checks if maximum total score has been reached. This will result in a win.
+     * @return True if maximum total score has been reached, false otherwise.
+     */
     private boolean winningScoreReached() {
         return gameStats.getTotalScore() >= 500;
     }
 
+    /**
+     * Checks if maximum frames has been reached. This will result in a loss.
+     * @return True if maximum frames has been reached, false otherwise.
+     */
+    private boolean ranOutOfFrames() {
+        return gameStats.getRemainingFrames() <= 0;
+    }
+
+    /**
+     * Checks if an empty active taxi has left the screen from the bottom. This will result in a loss.
+     * @return True if empty active taxi has left the screen from the bottom without a driver inside it.
+     */
     private boolean taxiLeftScreenWithoutDriver() {
         return (gameplay.getTaxi().getY() >= WINDOW_MAX_HEIGHT) && !gameplay.getTaxi().hasDriver();
     }
 
+    /**
+     * Checks if driver is dead. This will result in a loss.
+     * @return True if driver has died, false otherwise.
+     */
     private boolean isDriverDead() {
         return driver.getCurrentHealth() <= 0;
     }
 
     /**
+     * Checks if any passenger is dead. This will result in a loss.
+     * @return True if any passenger has died, false otherwise.
+     */
+    private boolean isPassengerDead() {
+        for (Passenger passenger : passengers) {
+            if (passenger.getCurrentHealth() <= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Gets total score from game stats.
+     * @return The current total score of gameplay.
      */
     public double getTotalScore() {
         return gameStats.getTotalScore();
