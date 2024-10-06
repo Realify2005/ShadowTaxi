@@ -461,7 +461,22 @@ public class Passenger extends Entity implements Damageable, Ejectable {
      * @param driverY The current Y-coordinate of driver.
      */
     private void updateWithDriverMovement(int driverX, int driverY) {
-        if (isPickedUp && !isMovingToFlag) {
+        if (isPickedUp && !isInTaxi) {
+            // Provides animation to ejected passenger moving towards driver.
+            if (getX() < driverX) {
+                setX(getX() + WALK_SPEED_X);
+            } else if (getX() > driverX) {
+                setX(getX() - WALK_SPEED_X);
+            }
+
+            if (getY() < driverY) {
+                setY(getY() + WALK_SPEED_Y);
+            } else if (getY() > driverY) {
+                setY(getY() - WALK_SPEED_Y);
+            }
+        } else if (isPickedUp && !isMovingToFlag) {
+            // Passenger is in taxi, so make sure that it is always update to date.
+            // This is to prevent unwanted animations during dropping off passengers to flag.
             setX(driverX);
             setY(driverY);
         }
@@ -503,7 +518,7 @@ public class Passenger extends Entity implements Damageable, Ejectable {
      */
     @Override
     public void draw() {
-        if (!isPickedUp || isMovingToFlag || (!isInTaxi && isDroppedOff)) {
+        if (!isPickedUp || isMovingToFlag || !isInTaxi || isDroppedOff) {
             IMAGE.draw(getX(), getY());
         }
     }
@@ -555,8 +570,10 @@ public class Passenger extends Entity implements Damageable, Ejectable {
      */
     @Override
     public void eject() {
-        isInTaxi = false;
-        setX(getX() - EJECT_X);
+        if (isInTaxi) {
+            isInTaxi = false;
+            setX(getX() - EJECT_X);
+        }
     }
 
     /**
@@ -663,6 +680,13 @@ public class Passenger extends Entity implements Damageable, Ejectable {
      */
     public boolean isInTaxi() {
         return isInTaxi;
+    }
+
+    /**
+     * Sets the passenger to have entered taxi.
+     */
+    public void enteredTaxi() {
+        isInTaxi = true;
     }
 
     /**

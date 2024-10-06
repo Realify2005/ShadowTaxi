@@ -192,6 +192,11 @@ public class Gameplay {
     private double lowestPassengerHealth;
 
     /**
+     * Tracks the latest ejected passenger;
+     */
+    private Passenger lastEjectedPassenger;
+
+    /**
      * Constructor for gameplay class.
      * Initialises all the necessary attributes and lists for a gameplay class.
      * @param tripEndFlag The flag indicating where the passenger should be dropped off at the end of a trip.
@@ -237,6 +242,7 @@ public class Gameplay {
                 gameProps.getProperty("gameObjects.passenger.health")
         ) * PROPS_TO_GAME_MULTIPLIER;
         this.lowestPassengerHealth = this.passengerHealth;
+        this.lastEjectedPassenger = null;
 
         this.cars = new ArrayList<>();
         this.fireballs = new ArrayList<>();
@@ -252,7 +258,8 @@ public class Gameplay {
     public void checkIfTaxiIsAdjacentToPassengerOrFlag() {
         for (Passenger passenger : passengers) {
             // Check if taxi is adjacent to a passenger that has not been picked up before.
-            if (!taxi.hasPassenger() && taxi.isAdjacentToPassenger(passenger) && !passenger.isPickedUp()) {
+            if (!taxi.hasPassenger() && taxi.isAdjacentToPassenger(passenger)
+                    && !passenger.isPickedUp() && taxi.hasDriver()) {
                 taxi.pickUpPassenger(passenger);
             }
 
@@ -474,6 +481,7 @@ public class Gameplay {
             damagedTaxis.add(taxi);
             temporaryEffects.add(new Fire(taxi.getX(), taxi.getY(), GAME_PROPS));
             if (taxi.getCurrentPassenger() != null && !taxi.isPassengerMovingToFlag()) {
+                lastEjectedPassenger = taxi.getCurrentPassenger();
                 taxi.getCurrentPassenger().eject(); // eject passenger.
             }
             if (taxi.hasDriver()) {
@@ -523,6 +531,11 @@ public class Gameplay {
         if (taxi.isAdjacentToDriver(driver) && !taxi.hasDriver()) {
             taxi.driverEntered();
             driver.enteredTaxi();
+            if (lastEjectedPassenger != null && !lastEjectedPassenger.isInTaxi()) {
+                // Make sure that passenger is updated with taxi movement.
+                taxi.setCurrentPassenger(lastEjectedPassenger);
+                lastEjectedPassenger.enteredTaxi();
+            }
         }
     }
 

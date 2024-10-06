@@ -336,8 +336,10 @@ public class Driver extends Entity implements Damageable, Ejectable {
      */
     @Override
     public void eject() {
-        inTaxi = false;
-        setX(getX() - EJECT_X);
+        if (inTaxi) {
+            inTaxi = false;
+            setX(getX() - EJECT_X);
+        }
     }
 
     /**
