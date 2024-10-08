@@ -145,8 +145,6 @@ public class Taxi extends Entity implements Damageable {
         this.currentHealth -= damage;
         if (this.currentHealth < 0) {
             this.currentHealth = 0;
-            hasDriver = false; // driver gets ejected
-            currentPassenger = null; // passenger gets ejected
         }
     }
 
@@ -447,6 +445,14 @@ public class Taxi extends Entity implements Damageable {
      */
     public void driverEjected() {
         hasDriver = false;
+    }
+
+    /**
+     * Sets the taxi to not having a passenger.
+     * This function is called when the taxi is broken and thus the passenger is ejected from the taxi.
+     */
+    public void passengerEjected() {
+        currentPassenger = null;
     }
 
     /**

@@ -1,4 +1,4 @@
-import bagel.Image;
+import bagel.*;
 import java.util.Properties;
 
 /**
@@ -41,17 +41,17 @@ public abstract class Car implements Drawable, Damageable {
     /**
      * The first possible starting y-coordinate when the car spawns on the screen.
      */
-    protected final int CAR_Y_1 = -50;
+    protected static final int CAR_Y_1 = -50;
 
     /**
      * The second possible starting y-coordinate when the car spawns on the screen.
      */
-    protected final int CAR_Y_2 = 768;
+    protected static final int CAR_Y_2 = 768;
 
     /**
      * Amount of y-coordinate changed per frame when separating car from another damageable object during a collision.
      */
-    protected final int SEPARATE_Y = 1;
+    protected static final int SEPARATE_Y = 1;
 
     /**
      * The center x-coordinate of the first road lane.
@@ -111,12 +111,12 @@ public abstract class Car implements Drawable, Damageable {
     /**
      * The total number of frames during which the car is immune from collisions after a collision occurs.
      */
-    private final int COLLISION_TIMEOUT_FRAMES_TOTAL = 200;
+    private static final int COLLISION_TIMEOUT_FRAMES_TOTAL = 200;
 
     /**
      * The initial number of frames during which the car must separate from the object it has collided with.
      */
-    private final int COLLISION_TIMEOUT_FRAMES_INITIAL = 10;
+    private static final int COLLISION_TIMEOUT_FRAMES_INITIAL = 10;
 
     /**
      * Constructor for Car class.
@@ -182,24 +182,42 @@ public abstract class Car implements Drawable, Damageable {
      * Calls another method to continue separation of object from collided object if still in initial timeout.
      * If not currently in collision timeout, then moves the object in y direction according to its fixed speed.
      * Renders the object where necessary.
+     * @param input The current mouse/keyboard input.
+     * @param taxi The current active taxi on gameplay screen.
      */
-    public void update() {
+    public void update(Input input, Taxi taxi, Driver driver) {
         updateCollisionTimeoutFramesRemaining();
 
         // Check if still in collision timeout
         if (collisionTimeoutFramesRemaining > 0) {
             separateFromObject(collidingOtherObject);
         } else {
-            moveUp();
+            moveUp(input, taxi, driver);
         }
         draw();
     }
 
     /**
      * Moves the object up, in the y-direction.
+     * @param input The current mouse/keyboard input.
+     * @param taxi The current active taxi on gameplay screen.
+     * @param driver The current driver entity.
      */
-    private void moveUp() {
-        this.y -= SPEED;
+    private void moveUp(Input input, Taxi taxi, Driver driver) {
+        // Account for relative velocity.
+        if (input.isDown(Keys.UP) && taxi.hasDriver()) {
+            // Taxi is moving up on screen.
+            this.y -= (SPEED - taxi.SCROLL_SPEED);
+        } else if (input.isDown(Keys.UP) && !taxi.hasDriver()) {
+            // Driver is moving up on screen.
+            this.y -= (SPEED - driver.getWalkSpeedY());
+        } else if (input.isDown(Keys.DOWN) && !taxi.hasDriver()) {
+            // Driver is moving down on screen.
+            this.y -= (SPEED + driver.getWalkSpeedY());
+        } else {
+            // Not taxi not driver is currently moving on screen.
+            this.y -= SPEED;
+        }
     }
 
     /**

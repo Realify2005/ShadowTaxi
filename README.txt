@@ -13,3 +13,12 @@ the passenger will be "teleported" to the taxi. This is so that the passenger wi
 and the logic of trip start and end and dropping off passengers etc won't be compromised. This is especially for the case
 where the driver is entering the taxi from the bottom (driver move upwards really fast, passenger cannot keep up). This edge
 case is not shown in the demo.
+
+#636 in EDSTEM (private), asked if protected is fine for GAME_PROPS, and tutor Charlie Ding mentioned that it is fine.
+Therefore, I have used it for all constant attributes.
+
+#259 in EDSTEM. I am not able to make constants that read their values from properties file static AND final at the same
+time (even with static {} it won't let me since the game_props and message_props are inside constructors, and to access
+them I would need to make them static too which is just not possible). Therefore, I can only make some constants static,
+that is, the ones that are "hardcoded" (does not read from properties file). While the ones that reads from properties
+file are non-static as reasons per #259 in EDSTEM.

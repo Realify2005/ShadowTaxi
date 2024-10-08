@@ -110,7 +110,6 @@ public class Gameplay {
      */
     private final int TAXI_NEXT_SPAWN_MAX_Y;
 
-
     /**
      * The taxi object in the gameplay.
      */
@@ -291,8 +290,8 @@ public class Gameplay {
         }
 
         renderTripInfo();
-        driver.update(input, taxi);
         taxi.update(input);
+        driver.update(input, taxi);
         checkAndHandleCollisions(input);
         randomlySpawnCars();
         checkIfDriverCanEnterTaxi();
@@ -343,8 +342,8 @@ public class Gameplay {
      * @param input The current mouse/keyboard input.
      */
     private void checkAndHandleCollisions(Input input) {
-        checkCarCollisions();
-        checkFireballCollisions();
+        checkCarCollisions(input);
+        checkFireballCollisions(input);
         checkPowerUpCollisions(input);
         checkIfTaxiIsBroken();
 
@@ -361,13 +360,13 @@ public class Gameplay {
      * Checks and handles all possible collisions involving cars.
      * Cars can collide with taxi, driver, passengers, and other cars.
      */
-    private void checkCarCollisions() {
+    private void checkCarCollisions(Input input) {
         // Check collisions between car and other entities.
         for (Car car : cars) {
             if (taxi.handleCollision(car)) {
                 temporaryEffects.add(new Smoke(taxi.getX(), taxi.getY(), GAME_PROPS));
             }
-            car.update();
+            car.update(input, taxi, driver);
             if (car.getCurrentHealth() <= 0 && !car.isFireEffectAdded()) {
                 temporaryEffects.add(new Fire(car.getX(), car.getY(), GAME_PROPS));
                 car.fireEffectWasAdded();
@@ -405,10 +404,10 @@ public class Gameplay {
      * Checks and handles all possible collisions involving fireballs.
      * Fireballs can inflict damage towards passengers, cars, taxi, and driver.
      */
-    private void checkFireballCollisions() {
+    private void checkFireballCollisions(Input input) {
 
         for (Fireball fireball : fireballs) {
-            fireball.update();
+            fireball.update(input, taxi, driver);
             double fireballDamage = fireball.getDamage();
 
             // Check possible collisions between fireball and passengers.
@@ -481,8 +480,10 @@ public class Gameplay {
             damagedTaxis.add(taxi);
             temporaryEffects.add(new Fire(taxi.getX(), taxi.getY(), GAME_PROPS));
             if (taxi.getCurrentPassenger() != null && !taxi.isPassengerMovingToFlag()) {
+                System.out.println("passenger ejected");
                 lastEjectedPassenger = taxi.getCurrentPassenger();
                 taxi.getCurrentPassenger().eject(); // eject passenger.
+                taxi.passengerEjected();
             }
             if (taxi.hasDriver()) {
                 driver.eject(); // eject driver.

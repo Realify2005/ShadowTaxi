@@ -379,4 +379,12 @@ public class Driver extends Entity implements Damageable, Ejectable {
      * @return The taxi get in radius.
      */
     public int getTaxiGetInRadius() { return TAXI_GET_IN_RADIUS; }
+
+    /**
+     * Gets the vertical walk speed of the driver.
+     * @return The vertical walk speed of the driver.
+     */
+    public int getWalkSpeedY() {
+        return WALK_SPEED_Y;
+    }
 }

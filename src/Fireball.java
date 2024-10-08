@@ -1,4 +1,7 @@
 import bagel.Image;
+import bagel.Input;
+import bagel.Keys;
+
 import java.util.Properties;
 
 /**
@@ -75,8 +78,8 @@ public class Fireball implements Drawable {
      * Updates the fireball's entity state.
      * Moves the fireball upwards and draws it.
      */
-    public void update() {
-        moveUp();
+    public void update(Input input, Taxi taxi, Driver driver) {
+        moveUp(input, taxi, driver);
         draw();
     }
 
@@ -105,9 +108,25 @@ public class Fireball implements Drawable {
 
     /**
      * Moves the fireball upwards.
+     * @param input The current mouse/keyboard input.
+     * @param taxi The current active taxi on gameplay screen.
+     * @param driver The current driver entity.
      */
-    private void moveUp() {
-        this.y -= SHOOT_SPEED_Y;
+    private void moveUp(Input input, Taxi taxi, Driver driver) {
+        // Account for relative velocity.
+        if (input.isDown(Keys.UP) && taxi.hasDriver()) {
+            // Taxi is moving up on screen.
+            this.y -= (SHOOT_SPEED_Y - taxi.SCROLL_SPEED);
+        } else if (input.isDown(Keys.UP) && !taxi.hasDriver()) {
+            // Driver is moving up on screen.
+            this.y -= (SHOOT_SPEED_Y - driver.getWalkSpeedY());
+        } else if (input.isDown(Keys.DOWN) && !taxi.hasDriver()) {
+            // Driver is moving down on screen.
+            this.y -= (SHOOT_SPEED_Y + driver.getWalkSpeedY());
+        } else {
+            // Not taxi not driver is currently moving on screen.
+            this.y -= SHOOT_SPEED_Y;
+        }
     }
 
     /**

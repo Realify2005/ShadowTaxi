@@ -1,5 +1,6 @@
 import java.util.Properties;
 import java.util.ArrayList;
+import bagel.Input;
 
 /**
  * Class representing the Enemy Car entity, which has all functionalities as Car.
@@ -49,8 +50,8 @@ public class EnemyCar extends Car {
      * Furthermore, it attempts to spawn fireballs randomly, according to the set fireball spawn rate.
      */
     @Override
-    public void update() {
-        super.update();
+    public void update(Input input, Taxi taxi, Driver driver) {
+        super.update(input, taxi, driver);
         // Fireball spawns if (1000 % FIREBALL_SPAWN_RATE == 0).
         if (MiscUtils.canSpawn(FIREBALL_SPAWN_RATE)) {
             shootFireball();

@@ -60,22 +60,22 @@ public class Passenger extends Entity implements Damageable, Ejectable {
     /**
      * The difference in X-coordinate at which the passenger will be ejected from the original position of the taxi.
      */
-    private final int EJECT_X = 100;
+    private static final int EJECT_X = 100;
 
     /**
      * The amount of X-coordinate pixels the passenger moves per frame during initial collision timeout frames.
      */
-    private final int SEPARATE_X = 2;
+    private static final int SEPARATE_X = 2;
 
     /**
      * The amount of Y-coordinate pixels the passenger moves per frame during initial collision timeout frames.
      */
-    private final int SEPARATE_Y = 2;
+    private static final int SEPARATE_Y = 2;
 
     /**
      * The amount of damage the passenger can inflict onto other damageable objects during a collision.
      */
-    private final int DAMAGE = 0;
+    private static final int DAMAGE = 0;
 
     /**
      * The original priority of the passenger.
