@@ -198,7 +198,7 @@ public class Taxi extends Entity implements Damageable {
             if (collisionTimeoutFramesRemaining == 0 && distance < collisionRange) {
                 collidingCar = other;
                 other.receiveCollision(this); // Other entity always receives damage regardless of active power-up.
-                if (POWER_UP_STATE.isInvincibleActivated()) {
+                if (POWER_UP_STATE.isInvincibleActivated() && hasDriver) {
                     // Invincible power is active, so a collision has not happened.
                     return false;
                 }

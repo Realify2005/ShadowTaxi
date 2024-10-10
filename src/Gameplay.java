@@ -371,11 +371,11 @@ public class Gameplay {
                 temporaryEffects.add(new Fire(car.getX(), car.getY(), GAME_PROPS));
                 car.fireEffectWasAdded();
             }
-            if (driver.handleCollision(car)) {
+            if (driver.handleCollision(car) && driver.getCurrentHealth() <= 0) {
                 temporaryEffects.add(new Blood(driver.getX(), driver.getY(), GAME_PROPS));
             }
             for (Passenger passenger : passengers) {
-                if (passenger.handleCollision(car)) {
+                if (passenger.handleCollision(car) && passenger.getCurrentHealth() <= 0) {
                     temporaryEffects.add(new Blood(passenger.getX(), passenger.getY(), GAME_PROPS));
                 }
             }
@@ -424,6 +424,7 @@ public class Gameplay {
                 for (Car car : cars) {
                     if (car != fireball.getSpawnedBy() && fireball.collidesWith(car.getX(), car.getY(), car.getRadius())) {
                         car.receiveDamage(fireballDamage);
+                        temporaryEffects.add(new Smoke(car.getX(), car.getY(), GAME_PROPS));
                         fireball.wasCollided();
                         break;
                     }
@@ -442,6 +443,7 @@ public class Gameplay {
             if (!fireball.isCollided()) {
                 if (fireball.collidesWith(taxi.getX(), taxi.getY(), taxi.getRadius())) {
                     taxi.receiveDamage(fireballDamage);
+                    temporaryEffects.add(new Smoke(taxi.getX(), taxi.getY(), GAME_PROPS));
                     fireball.wasCollided();
                 }
             }
